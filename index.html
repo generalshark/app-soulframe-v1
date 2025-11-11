@@ -53,8 +53,8 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef } = React;
 
-        const Card = ({ id, title, children, className = "" }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+        const Card = ({ id, title, children, className = "", defaultExpanded = true }) => {
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const contentRef = useRef(null);
 
   return (
