@@ -33,19 +33,6 @@
         min-height: 100vh;
     }
     
-    /* Supprimez ou commentez le ::before puisque le gradient est maintenant intégré */
-    /*
-    body::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(13, 13, 11, 0.7);
-        z-index: -1;
-    }
-         */
     /* === SOLUTION CSS GLOBALE POUR LES TOOLTIPS === */
 /* Forcer TOUS les tooltips au premier plan */
 .relative.group .absolute,
@@ -79,7 +66,7 @@ td, th {
 .group:hover .absolute {
     z-index: 999999 !important;
 }
-/* Désactive le clipping des tooltips dans les tableaux d’armes */
+/* Désactive le clipping des tooltips dans les tableaux d'armes */
 #weapons .overflow-auto {
   overflow: visible !important;
 }
@@ -472,6 +459,24 @@ const PACT_ICONS = {
             ]
           }
         };
+        // === ENEMY COMPENDIUM (jointure auto API + metadata) ===
+const ENEMY_COMPENDIUM = {
+  "MeleeGruntAvatar": { name: "Mendicant Grunt", faction: "Mendicant", biome: "Undercity", type: "Grunt" },
+  "DualMeleeGruntAvatar": { name: "Dual Wielder", faction: "Mendicant", biome: "Undercity", type: "Grunt" },
+  "EliteMeleeGruntAvatar": { name: "Elite Grunt", faction: "Mendicant", biome: "Undercity", type: "Elite" },
+  "RangedHunterAvatar": { name: "Ranged Hunter", faction: "Mendicant", biome: "Glades", type: "Ranged" },
+  "RangedHunterEliteAvatar": { name: "Elite Ranged Hunter", faction: "Mendicant", biome: "Glades", type: "Elite" },
+  "MendicantWazzardSubBossAvatar": { name: "Wraith of Wastes", faction: "Mendicant", biome: "Wazzard", type: "SubBoss", icon: "https://static.wikitide.net/soulframewiki/0/0b/WraithofWastes.jpg" },
+  "NimrodSubBossAvatar": { name: "Discharged Nimrod", faction: "Mendicant", biome: "Wastes", type: "SubBoss", icon: "https://static.wikitide.net/soulframewiki/c/cb/DischargedNimrod.jpg" },
+  "SpiderSubBossAvatar": { name: "Etheldred the Weaver", faction: "Wildlife", biome: "Glades", type: "SubBoss", icon: "https://static.wikitide.net/soulframewiki/1/16/EtheldredTheWeaver.png" },
+  "MockeryArmoredManSubBossAvatar": { name: "Thrice-Bound Impidh", faction: "Mockery", biome: "Forest", type: "SubBoss", icon: "https://static.wikitide.net/soulframewiki/5/52/ThriceboundImpidh.jpg" },
+  "MendicantKingAvatar": { name: "The Mendicant King", faction: "Mendicant", biome: "Wastes", type: "Boss", icon: "https://static.wikitide.net/soulframewiki/6/67/MendicantKingSquare.png" },
+  "CorruptedBromiusAvatar": { name: "Corrupted Bromius", faction: "Corrupted", biome: "Circade", type: "Boss", icon: "https://static.wikitide.net/soulframewiki/1/18/CorruptedBromius.jpg" },
+  "GarrenHerdBaseAvatar": { name: "Garren's Herd", faction: "Wildlife", biome: "Glades", type: "Boss" },
+  "CorruptedSproutFolkAvatar": { name: "Corrupted Sproutfolk", faction: "Corrupted", biome: "Glades", type: "Corrupted" },
+  "CorruptedSproutFolkSubBossAvatar": { name: "Kabocha", faction: "Corrupted", biome: "Glades", type: "SubBoss", icon: "https://static.wikitide.net/soulframewiki/0/07/Kabocha.jpg" },
+  "RangedHunterSubBossAvatar": { name: "Gruul Seeker Ruthos", faction: "Mendicant", biome: "Glades", type: "SubBoss", icon: "https://static.wikitide.net/soulframewiki/0/02/GruulSeekerRuthos.jpg" }
+};
 
         const App = () => {
   const [payload, setPayload] = useState(null);
@@ -660,6 +665,23 @@ const getWeaponDisplayData = (weaponType) => {
                 : "0%"
             };
           }, [weapons, enemies]);
+
+          // === Fusion des ennemis API + Metadata enrichie ===
+          const enrichedEnemies = useMemo(() => {
+            return enemies.map((e) => {
+              const key = e.type?.split("/")?.pop();
+              const meta = ENEMY_COMPENDIUM[key] || {};
+              return {
+                ...e,
+                id: key,
+                name: meta.name || key,
+                faction: meta.faction || "Unknown",
+                biome: meta.biome || "—",
+                category: meta.type || "Unknown",
+                icon: meta.icon || null,
+              };
+            });
+          }, [enemies]);
 
           const getSubBossDisplayName = (enemyType) => {
             const key = enemyType?.split("/")?.pop();
@@ -1227,7 +1249,7 @@ const getWeaponDisplayData = (weaponType) => {
     </div>
     
     <span>{weaponData.name}</span>
-  </div>,  // ← AJOUTEZ CETTE VIRGULE ICI !
+  </div>,
   w.kills?.toLocaleString() ?? "0",
   w.equipTime ? `${(w.equipTime / 3600).toFixed(1)} h` : "—",
   w.headshots?.toLocaleString() ?? "0",
@@ -1292,7 +1314,7 @@ const getWeaponDisplayData = (weaponType) => {
                   </div>
                   
                   <span>{weaponData.name}</span>
-                </div>,  // ← VIRGULE ICI, juste après </div>
+                </div>,
                 w.kills?.toLocaleString() ?? "0",
                 w.equipTime ? `${(w.equipTime / 3600).toFixed(1)} h` : "—",
                 w.headshots?.toLocaleString() ?? "0",
@@ -1338,12 +1360,42 @@ const getWeaponDisplayData = (weaponType) => {
 
                     {enemies.length > 0 && (
                       <Card id="enemies" title="Enemies" defaultExpanded={false}>
+                        <Card id="enemy-compendium" title="📖 Enemy Compendium" defaultExpanded={false}>
+                          <DataTable
+                            headers={["Enemy", "Faction", "Biome", "Type", "Kills", "Headshots", "Executions"]}
+                            data={enrichedEnemies.map((e) => [
+                              <div className="flex items-center gap-2 relative group" key={e.id}>
+                                {e.icon ? (
+                                  <>
+                                    <img src={e.icon} alt={e.name} className="w-6 h-6 rounded-sm object-cover" />
+                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 pointer-events-none z-[9999]">
+                                      <div className="bg-gradient-to-br from-[#1a1814] to-[#2a2824] border border-amber-600/50 rounded-lg p-3 shadow-2xl shadow-amber-900/20 backdrop-blur-sm">
+                                        <img src={e.icon} alt={e.name} className="w-24 h-24 rounded-sm object-cover" />
+                                        <div className="text-amber-200 text-xs text-center mt-2 bg-amber-900/20 px-2 py-1 rounded">
+                                          {e.name}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <span className="text-amber-400">⚔️</span>
+                                )}
+                                <span className="font-medium">{e.name}</span>
+                              </div>,
+                              e.faction,
+                              e.biome,
+                              e.category,
+                              e.kills?.toLocaleString() ?? "0",
+                              e.headshots?.toLocaleString() ?? "0",
+                              e.executions?.toLocaleString() ?? "0",
+                            ])}
+                          />
+                        </Card>
+
+                        {/* Autres catégories */}
                         <div className="space-y-8">
                           {Object.entries(groupedEnemies)
-                            .filter(
-                              ([categoryKey, group]) =>
-                                categoryKey !== "SUBBOSS" && group.enemies.length > 0
-                            )
+                            .filter(([categoryKey, group]) => categoryKey !== "SUBBOSS" && group.enemies.length > 0)
                             .map(([categoryKey, group]) => (
                               <div
                                 key={categoryKey}
@@ -1357,13 +1409,7 @@ const getWeaponDisplayData = (weaponType) => {
                                   </span>
                                 </h3>
                                 <DataTable
-                                  headers={[
-                                    "Enemy",
-                                    "Kills",
-                                    "Headshots",
-                                    "Executions",
-                                    "Deaths"
-                                  ]}
+                                  headers={["Enemy", "Kills", "Headshots", "Executions", "Deaths"]}
                                   data={group.enemies.map((e, idx) => [
                                     <div className="flex items-center gap-2" key={idx}>
                                       <span>⚔️</span>
@@ -1372,7 +1418,7 @@ const getWeaponDisplayData = (weaponType) => {
                                     e.kills?.toLocaleString() ?? "0",
                                     e.headshots?.toLocaleString() ?? "0",
                                     e.executions?.toLocaleString() ?? "0",
-                                    e.deaths?.toLocaleString() ?? "0"
+                                    e.deaths?.toLocaleString() ?? "0",
                                   ])}
                                 />
                               </div>
@@ -1394,7 +1440,7 @@ const getWeaponDisplayData = (weaponType) => {
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+        root.render(<App />);
     </script>
 </body>
 </html>
