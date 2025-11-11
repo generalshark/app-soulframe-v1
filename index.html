@@ -168,13 +168,13 @@ td, th {
         const ProgressBar = ({ value, max, label, color = "amber" }) => {
   const percentage = max ? (value / max) * 100 : 0;
   
-  const colorClasses = {
-    amber: "bg-gradient-to-r from-amber-500 to-amber-300",
-    green: "bg-gradient-to-r from-green-500 to-green-300", 
-    // Utilisez les couleurs Tailwind qui fonctionnent
-    champion: "bg-gradient-to-r from-red-500 to-red-400",
-    fey: "bg-gradient-to-r from-green-500 to-green-400", 
-    silentRose: "bg-gradient-to-r from-blue-500 to-blue-400"
+  // Couleurs HSL exactes
+  const colorStyles = {
+    amber: { background: "linear-gradient(to right, #f59e0b, #fbbf24)" },
+    green: { background: "linear-gradient(to right, #10b981, #34d399)" },
+    champion: { background: "linear-gradient(to right, hsl(1, 69%, 60%), hsl(1, 69%, 50%))" },
+    fey: { background: "linear-gradient(to right, hsl(146, 32%, 47%), hsl(146, 32%, 37%))" },
+    silentRose: { background: "linear-gradient(to right, hsl(217, 50%, 58%), hsl(217, 50%, 48%))" }
   };
 
   return (
@@ -185,8 +185,11 @@ td, th {
       </div>
       <div className="w-full bg-amber-900/20 rounded-full h-2 overflow-hidden">
         <div 
-          className={`h-full rounded-full transition-all duration-1000 ease-out ${colorClasses[color] || colorClasses.amber}`}
-          style={{ width: `${Math.min(percentage, 100)}%` }}
+          className="h-full rounded-full transition-all duration-1000 ease-out"
+          style={{ 
+            width: `${Math.min(percentage, 100)}%`,
+            ...(colorStyles[color] || colorStyles.amber)
+          }}
         />
       </div>
     </div>
