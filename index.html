@@ -51,21 +51,40 @@
 <body>
     <div id="root"></div>
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const { useState, useEffect, useMemo, useRef } = React;
 
-        const Card = ({ id, title, children, className = "" }) => (
-          <section id={id} className="scroll-mt-24">
-            <div className={`bg-gradient-to-br from-[#1b1b18]/90 to-[#0f0f0e]/90 border border-amber-900/40 shadow-2xl shadow-amber-900/10 rounded-2xl p-6 mb-8 backdrop-blur-sm transition-all duration-300 hover:shadow-amber-900/20 hover:border-amber-800/60 ${className}`}>
-              <h2 className="text-2xl font-serif text-amber-300 drop-shadow mb-4 border-b border-amber-800/40 pb-2 flex items-center">
-                <span className="bg-gradient-to-r from-amber-400 to-amber-300 bg-clip-text text-transparent">
-                  {title}
-                </span>
-              </h2>
-              {children}
-            </div>
-          </section>
-        );
+        const Card = ({ id, title, children, className = "" }) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+  const contentRef = useRef(null);
 
+  return (
+    <section id={id} className="scroll-mt-24">
+      <div className={`bg-gradient-to-br from-[#1b1b18]/90 to-[#0f0f0e]/90 border border-amber-900/40 shadow-2xl shadow-amber-900/10 rounded-2xl p-6 mb-8 backdrop-blur-sm transition-all duration-300 hover:shadow-amber-900/20 hover:border-amber-800/60 ${className}`}>
+        <h2 
+          className="text-2xl font-serif text-amber-300 drop-shadow mb-4 border-b border-amber-800/40 pb-2 flex items-center justify-between cursor-pointer hover:bg-amber-900/10 px-2 -mx-2 rounded-lg transition-colors"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          <span className="bg-gradient-to-r from-amber-400 to-amber-300 bg-clip-text text-transparent flex items-center gap-2">
+            {title}
+          </span>
+          <span className="text-amber-400/70 text-xl font-bold w-6 h-6 flex items-center justify-center bg-amber-900/30 rounded transition-all duration-300 hover:bg-amber-800/50">
+            {isExpanded ? '−' : '+'}
+          </span>
+        </h2>
+        <div 
+          ref={contentRef}
+          className={`transition-all duration-500 ease-in-out ${
+            isExpanded 
+              ? 'max-h-[5000px] opacity-100' 
+              : 'max-h-0 opacity-0 overflow-hidden'
+          }`}
+        >
+          {children}
+        </div>
+      </div>
+    </section>
+  );
+};
         const Stat = ({ label, value, icon }) => (
           <div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 min-w-[160px] shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
             <div className="flex items-center gap-2 mb-1">
@@ -735,7 +754,7 @@
                     )}
 
                     {groupedEnemies.SUBBOSS && groupedEnemies.SUBBOSS.enemies.length > 0 && (
-                      <Card id="subboss" title="👑 Sub Bosses">
+                      <Card id="subboss" title="👑 Sub Bosses" defaultExpanded={false}>
                         <div className="relative">
                           <div className="absolute inset-0 bg-gradient-to-r from-red-900/10 to-amber-900/10 rounded-xl blur-sm"></div>
                           <div className="relative bg-gradient-to-br from-[#2a1a0a] to-[#1a0f05] border-2 border-amber-500/50 rounded-xl p-5 shadow-2xl shadow-amber-900/30">
@@ -795,7 +814,7 @@
                     )}
 
                     {Object.keys(groupedAbilities).length > 0 && (
-                      <Card id="abilities" title="Abilities">
+                      <Card id="abilities" title="Abilities" defaultExpanded={false}>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                           {Object.entries(groupedAbilities).map(([group, list]) => (
                             <div
@@ -842,7 +861,7 @@
                     )}
 
                     {weapons.length > 0 && (
-                      <Card id="weapons" title="Weapons">
+                      <Card id="weapons" title="Weapons" defaultExpanded={false}>
                         <div className="space-y-8">
                           {groupedWeapons.main.length > 0 && (
                             <div className="bg-gradient-to-br from-[#1a1814] to-[#1f1d18] border border-amber-800/30 rounded-xl p-4">
@@ -926,7 +945,7 @@
                     )}
 
                     {enemies.length > 0 && (
-                      <Card id="enemies" title="Enemies">
+                      <Card id="enemies" title="Enemies" defaultExpanded={false}>
                         <div className="space-y-8">
                           {Object.entries(groupedEnemies)
                             .filter(
