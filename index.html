@@ -46,6 +46,32 @@
         z-index: -1;
     }
          */
+    /* === SOLUTION CSS GLOBALE POUR LES TOOLTIPS === */
+/* Forcer les tooltips Weapons au premier plan */
+.relative.group .absolute {
+    z-index: 9999 !important;
+}
+
+/* S'assurer que le DataTable n'interfère pas */
+table {
+    position: relative;
+    z-index: 1;
+}
+
+td {
+    position: relative;
+    z-index: 1;
+}
+
+/* Forcer l'affichage au premier plan au survol */
+.group:hover .absolute {
+    z-index: 99999 !important;
+}
+
+/* Assurer que les tooltips ne soient pas coupés */
+.absolute {
+    position: absolute !important;
+}
     </style>
 </head>
 <body>
@@ -937,7 +963,7 @@ const getWeaponDisplayData = (weaponType) => {
               return [
                 <div className="flex items-center gap-2" key={w.type}>
                  <div className="relative group z-50">
-  <div className="w-8 h-8 flex items-center justify-center bg-amber-900/20 rounded-sm overflow-hidden">
+  <div className="w-8 h-8 flex items-center justify-center bg-amber-900/20 rounded-sm overflow-hidden z-40">
     <img 
       src={weaponData.icon} 
       alt={weaponData.name}
@@ -948,9 +974,9 @@ const getWeaponDisplayData = (weaponType) => {
       }}
     />
   </div>
-  {/* Tooltip sur le côté avec z-index ultra élevé */}
-  <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 pointer-events-none z-[9999]">
-    <div className="bg-gradient-to-br from-[#1a1814] to-[#2a2824] border border-amber-600/50 rounded-lg p-3 shadow-2xl shadow-amber-900/20 backdrop-blur-sm">
+  {/* Tooltip avec z-index ultra élevé */}
+  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 pointer-events-none z-[9999]">
+    <div className="bg-gradient-to-br from-[#1a1814] to-[#2a2824] border border-amber-600/50 rounded-lg p-3 shadow-2xl shadow-amber-900/20 backdrop-blur-sm relative z-[9999]">
       <img
         src={weaponData.icon}
         alt={weaponData.name}
