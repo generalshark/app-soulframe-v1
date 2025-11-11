@@ -1001,73 +1001,56 @@ const getWeaponDisplayData = (weaponType) => {
                               </span>
                             </h3>
                             <DataTable
-                              headers={[
-                                "SubBoss",
-                                "Kills",
-                                "Headshots",
-                                "Executions",
-                                "Deaths"
-                              ]}
-                              data={groupedEnemies.SUBBOSS.enemies.map((e, idx) => {
-  const subBossName = getSubBossDisplayName(e.type);
-  const subBossIcon = SUBBOSS_CATEGORY.labels[e.type?.split("/")?.pop()]?.icon || "⚔️";
-  
-  return [
-    <div className="flex items-center gap-2 relative group" key={idx}>
-      {subBossIcon.startsWith("http") ? (
-        <div className="relative">
-          <img 
-            src={subBossIcon} 
-            alt={subBossName}
-            className="w-6 h-6 object-cover rounded-sm cursor-help"
-          />
-          {/* Tooltip pour SubBoss */}
-          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 pointer-events-none z-[100]">
-            <div className="bg-gradient-to-br from-[#1a1814] to-[#2a2824] border border-amber-600/50 rounded-lg p-3 shadow-2xl shadow-amber-900/20 backdrop-blur-sm">
-              <img
-                src={subBossIcon}
-                alt={subBossName}
-                className="w-24 h-24 object-cover rounded-sm drop-shadow-[0_0_8px_rgba(212,175,55,0.3)]"
-              />
-              <div className="text-amber-200 text-xs text-center mt-2 font-medium bg-amber-900/20 px-2 py-1 rounded">
-                {subBossName}
+  headers={[
+    "SubBoss",
+    "Kills", 
+    "Headshots",
+    "Executions", 
+    "Deaths"
+  ]}
+  data={groupedEnemies.SUBBOSS.enemies.map((e, idx) => {
+    const subBossName = getSubBossDisplayName(e.type);
+    const subBossIcon = SUBBOSS_CATEGORY.labels[e.type?.split("/")?.pop()]?.icon || "⚔️";
+    
+    return [
+      <div className="flex items-center gap-2 relative group" key={idx}>
+        {subBossIcon.startsWith("http") ? (
+          <div className="relative">
+            <img 
+              src={subBossIcon} 
+              alt={subBossName}
+              className="w-6 h-6 object-cover rounded-sm cursor-help"
+            />
+            {/* Tooltip pour SubBoss */}
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 pointer-events-none z-[100]">
+              <div className="bg-gradient-to-br from-[#1a1814] to-[#2a2824] border border-amber-600/50 rounded-lg p-3 shadow-2xl shadow-amber-900/20 backdrop-blur-sm">
+                <img
+                  src={subBossIcon}
+                  alt={subBossName}
+                  className="w-24 h-24 object-cover rounded-sm drop-shadow-[0_0_8px_rgba(212,175,55,0.3)]"
+                />
+                <div className="text-amber-200 text-xs text-center mt-2 font-medium bg-amber-900/20 px-2 py-1 rounded">
+                  {subBossName}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      ) : (
-        <span className="text-red-400">{subBossIcon}</span>
-      )}
-      <span className="font-bold text-amber-200">
-        {subBossName}
-      </span>
-    </div>,
-    <span
-      className="font-semibold text-amber-100"
-      key={`k-${idx}`}
-    >
-      {e.kills?.toLocaleString() ?? "0"}
-    </span>,
-    <span
-      className="text-amber-200"
-      key={`h-${idx}`}
-    >
-      {e.headshots?.toLocaleString() ?? "0"}
-    </span>,
-    <span
-      className="text-amber-200"
-      key={`e-${idx}`}
-    >
-      {e.executions?.toLocaleString() ?? "0"}
-    </span>,
-    <span
-      className="text-red-300 font-medium"
-      key={`d-${idx}`}
-    >
-      {e.deaths?.toLocaleString() ?? "0"}
-    </span>
-  ]; // ← N'OUBLIEZ PAS CE CROCHET FERMANT ET CE POINT-VIRGULE !
-})}
+        ) : (
+          <span className="text-red-400">{subBossIcon}</span>
+        )}
+        <span className="font-bold text-amber-200">
+          {subBossName}
+        </span>
+      </div>,
+      e.kills?.toLocaleString() ?? "0",
+      e.headshots?.toLocaleString() ?? "0",
+      e.executions?.toLocaleString() ?? "0", 
+      e.deaths?.toLocaleString() ?? "0"
+    ];
+  })}
+  className="border-amber-600/30"
+  isBoss={true}
+/>
                                 <span
                                   className="font-semibold text-amber-100"
                                   key={`k-${idx}`}
