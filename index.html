@@ -827,7 +827,48 @@
                     {Object.keys(groupedAbilities).length > 0 && (
                       <Card id="abilities" title="Abilities" defaultExpanded={false}>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                          {Object.entries(groupedAbilities).map(([group, list]) => (
+                          {GROUP_ORDER
+  .filter(group => groupedAbilities[group] && groupedAbilities[group].length > 0)
+  .map(group => (
+    <div
+      key={group}
+      className="bg-gradient-to-br from-[#1a1814] to-[#1f1d18] border border-amber-800/30 rounded-xl p-4"
+    >
+      <h3 className="text-amber-300 text-lg font-semibold mb-3 pb-2 border-b border-amber-800/40 flex items-center gap-2">
+        <span className="text-amber-400">⚜</span>
+        {group}
+      </h3>
+      <div className="space-y-2">
+        {groupedAbilities[group].map((ab, i) => (
+          <div
+            key={i}
+            className="flex items-center justify-between bg-amber-900/10 hover:bg-amber-800/20 rounded-lg px-3 py-2 transition-all duration-300 group"
+          >
+            <div className="flex items-center gap-2">
+              {ab.icon && (
+                ab.icon.startsWith("http") ? (
+                  <img
+                    src={ab.icon}
+                    alt={ab.name}
+                    className="w-6 h-6 object-contain rounded-sm drop-shadow-[0_0_4px_rgba(255,200,100,0.2)]"
+                    loading="lazy"
+                  />
+                ) : (
+                  <span className="text-amber-400/80 text-lg">{ab.icon}</span>
+                )
+              )}
+              <span className="text-amber-200 font-medium group-hover:text-amber-100">
+                {ab.name}
+              </span>
+            </div>
+            <span className="text-amber-400 bg-amber-900/30 px-2 py-1 rounded text-xs font-medium">
+              {ab.used?.toLocaleString?.() ?? 0} uses
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  ))}
                             <div
                               key={group}
                               className="bg-gradient-to-br from-[#1a1814] to-[#1f1d18] border border-amber-800/30 rounded-xl p-4"
