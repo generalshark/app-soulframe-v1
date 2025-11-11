@@ -961,8 +961,8 @@ const getWeaponDisplayData = (weaponType) => {
             data={weaponsInGroup.map((w) => {
               const weaponData = getWeaponDisplayData(w.type);
               return [
-                <div className="flex items-center gap-2 relative" key={w.type}>
-  <div className="relative group">
+                <div className="flex items-center gap-2 relative group" key={w.type}>
+  <div className="relative">
     <div className="w-8 h-8 flex items-center justify-center bg-amber-900/20 rounded-sm overflow-hidden">
       <img 
         src={weaponData.icon} 
@@ -974,22 +974,18 @@ const getWeaponDisplayData = (weaponType) => {
         }}
       />
     </div>
-  </div>
-  
-  {/* TOOLTIP EXTERNE - placé au niveau de la cellule du tableau */}
-  <div className="absolute left-0 top-0 w-full h-full pointer-events-none">
-    <div className="relative w-8 h-8">
-      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 z-[9999]">
-        <div className="bg-gradient-to-br from-[#1a1814] to-[#2a2824] border border-amber-600/50 rounded-lg p-3 shadow-2xl shadow-amber-900/20 backdrop-blur-sm">
-          <img
-            src={weaponData.icon}
-            alt={weaponData.name}
-            className="w-24 h-24 object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.3)]"
-            loading="lazy"
-          />
-          <div className="text-amber-200 text-xs text-center mt-2 font-medium bg-amber-900/20 px-2 py-1 rounded">
-            {weaponData.name}
-          </div>
+    
+    {/* Tooltip */}
+    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 z-[9999] pointer-events-none">
+      <div className="bg-gradient-to-br from-[#1a1814] to-[#2a2824] border border-amber-600/50 rounded-lg p-3 shadow-2xl shadow-amber-900/20 backdrop-blur-sm">
+        <img
+          src={weaponData.icon}
+          alt={weaponData.name}
+          className="w-24 h-24 object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.3)]"
+          loading="lazy"
+        />
+        <div className="text-amber-200 text-xs text-center mt-2 font-medium bg-amber-900/20 px-2 py-1 rounded">
+          {weaponData.name}
         </div>
       </div>
     </div>
