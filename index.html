@@ -92,16 +92,16 @@ td, th {
 } 
  /* Couleurs personnalisées pour les factions */
 .bg-faction-champion {
-  background: linear-gradient(to right, hsl(1, 69%, 60%), hsl(1, 69%, 50%));
+  background: linear-gradient(to right, hsl(1, 69%, 60%), hsl(1, 69%, 50%)) !important;
 }
 
 .bg-faction-fey {
-  background: linear-gradient(to right, hsl(146, 32%, 47%), hsl(146, 32%, 37%));
+  background: linear-gradient(to right, hsl(146, 32%, 47%), hsl(146, 32%, 37%)) !important;
 }
 
 .bg-faction-silentRose {
-  background: linear-gradient(to right, hsl(217, 50%, 58%), hsl(217, 50%, 48%));
-}       
+  background: linear-gradient(to right, hsl(217, 50%, 58%), hsl(217, 50%, 48%)) !important;
+}
     </style>
 </head>
 <body>
@@ -794,50 +794,50 @@ const getWeaponDisplayData = (weaponType) => {
       <h3 className="text-amber-400 font-semibold">Factions Progress</h3>
       <div className="space-y-2">
         <ProgressBar
-          label={
-            <div className="flex items-center gap-2">
-              <img 
-                src="https://static.wikitide.net/soulframewiki/thumb/1/1a/ChampionFaction.png/165px-ChampionFaction.png" 
-                alt="Kith of King" 
-                className="w-4 h-4 object-contain rounded-sm"
-              />
-              <span>Kith of King</span>
-            </div>
-          }
-          value={playerInfo.championStanding}
-          max={30000}
-          color="champion"
-        />
+  label={
+    <div className="flex items-center gap-2 whitespace-nowrap">
+      <img 
+        src="https://static.wikitide.net/soulframewiki/thumb/1/1a/ChampionFaction.png/165px-ChampionFaction.png" 
+        alt="Kith of King" 
+        className="w-4 h-4 object-contain rounded-sm flex-shrink-0"
+      />
+      <span className="truncate">Kith of King</span>
+    </div>
+  }
+  value={playerInfo.championStanding}
+  max={30000}
+  color="champion"
+/>
         <ProgressBar
-          label={
-            <div className="flex items-center gap-2">
-              <img 
-                src="https://static.wikitide.net/soulframewiki/thumb/9/92/AlcasChildrenFactionIcon.png/165px-AlcasChildrenFactionIcon.png" 
-                alt="Alca Children" 
-                className="w-4 h-4 object-contain rounded-sm"
-              />
-              <span>Alca Children</span>
-            </div>
-          }
-          value={playerInfo.feyStanding}
-          max={30000}
-          color="fey"
-        />
+  label={
+    <div className="flex items-center gap-2 whitespace-nowrap">
+      <img 
+        src="https://static.wikitide.net/soulframewiki/thumb/9/92/AlcasChildrenFactionIcon.png/165px-AlcasChildrenFactionIcon.png" 
+        alt="Alca Children" 
+        className="w-4 h-4 object-contain rounded-sm flex-shrink-0"
+      />
+      <span className="truncate">Alca Children</span>
+    </div>
+  }
+  value={playerInfo.feyStanding}
+  max={30000}
+  color="fey"
+/>
         <ProgressBar
-          label={
-            <div className="flex items-center gap-2">
-              <img 
-                src="https://static.wikitide.net/soulframewiki/c/c1/Map-SilentRoseIcon.png" 
-                alt="The Silent Rose" 
-                className="w-4 h-4 object-contain rounded-sm"
-              />
-              <span>The Silent Rose</span>
-            </div>
-          }
-          value={playerInfo.silentRoseStanding}
-          max={30000}
-          color="silentRose"
-        />
+  label={
+    <div className="flex items-center gap-2 whitespace-nowrap">
+      <img 
+        src="https://static.wikitide.net/soulframewiki/c/c1/Map-SilentRoseIcon.png" 
+        alt="The Silent Rose" 
+        className="w-4 h-4 object-contain rounded-sm flex-shrink-0"
+      />
+      <span className="truncate">The Silent Rose</span>
+    </div>
+  }
+  value={playerInfo.silentRoseStanding}
+  max={30000}
+  color="silentRose"
+/>
       </div>
     </div>
 
@@ -845,17 +845,17 @@ const getWeaponDisplayData = (weaponType) => {
       <h3 className="text-amber-400 font-semibold">Combat Stats</h3>
       <div className="space-y-2">
         <ProgressBar
-          label="Total Kills"
-          value={totalStats.totalKills}
-          max={Math.max(totalStats.totalKills, 1000)}
-          color="amber"
-        />
-        <ProgressBar
-          label="Headshots"
-          value={totalStats.totalHeadshots}
-          max={totalStats.totalKills}
-          color="fey"
-        />
+  label={<span className="whitespace-nowrap">Total Kills</span>}
+  value={totalStats.totalKills}
+  max={Math.max(totalStats.totalKills, 1000)}
+  color="amber"
+/>
+<ProgressBar
+  label={<span className="whitespace-nowrap">Headshots</span>}
+  value={totalStats.totalHeadshots}
+  max={totalStats.totalKills}
+  color="fey"
+/>
         <div className="flex justify-between text-xs text-amber-300">
           <span>Headshot Ratio</span>
           <span>{totalStats.headshotRatio}</span>
