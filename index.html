@@ -992,7 +992,7 @@ const getWeaponDisplayData = (weaponType) => {
 )}                          
 
                    
-  data={groupedEnemies.SUBBOSS && groupedEnemies.SUBBOSS.enemies.length > 0 && (
+  {groupedEnemies.SUBBOSS && groupedEnemies.SUBBOSS.enemies.length > 0 && (
   <Card id="subboss" title="👑 Sub Bosses" defaultExpanded={false}>
     <div className="relative">
       <div className="absolute inset-0 bg-gradient-to-r from-red-900/10 to-amber-900/10 rounded-xl blur-sm"></div>
@@ -1004,28 +1004,20 @@ const getWeaponDisplayData = (weaponType) => {
             ({groupedEnemies.SUBBOSS.enemies.length} subbosses)
           </span>
         </h3>
+
         <DataTable
-          headers={[
-            "SubBoss",
-            "Kills", 
-            "Headshots",
-            "Executions", 
-            "Deaths"
-          ]}
- </div>
-  </Card>
-)}
-            
+          headers={["SubBoss", "Kills", "Headshots", "Executions", "Deaths"]}
           data={groupedEnemies.SUBBOSS.enemies.map((e) => {
             const subBossName = getSubBossDisplayName(e.type);
-            const subBossIcon = SUBBOSS_CATEGORY.labels[e.type?.split("/")?.pop()]?.icon || "⚔️";
-            
+            const subBossIcon =
+              SUBBOSS_CATEGORY.labels[e.type?.split("/")?.pop()]?.icon || "⚔️";
+
             return [
-              <div className="flex items-center gap-2 relative group">
+              <div className="flex items-center gap-2 relative group" key={e.type}>
                 {subBossIcon.startsWith("http") ? (
                   <div className="relative">
-                    <img 
-                      src={subBossIcon} 
+                    <img
+                      src={subBossIcon}
                       alt={subBossName}
                       className="w-6 h-6 object-cover rounded-sm cursor-help"
                     />
@@ -1045,14 +1037,12 @@ const getWeaponDisplayData = (weaponType) => {
                 ) : (
                   <span className="text-red-400">{subBossIcon}</span>
                 )}
-                <span className="font-bold text-amber-200">
-                  {subBossName}
-                </span>
+                <span className="font-bold text-amber-200">{subBossName}</span>
               </div>,
               e.kills?.toLocaleString() ?? "0",
               e.headshots?.toLocaleString() ?? "0",
-              e.executions?.toLocaleString() ?? "0", 
-              e.deaths?.toLocaleString() ?? "0"
+              e.executions?.toLocaleString() ?? "0",
+              e.deaths?.toLocaleString() ?? "0",
             ];
           })}
           className="border-amber-600/30"
@@ -1062,6 +1052,7 @@ const getWeaponDisplayData = (weaponType) => {
     </div>
   </Card>
 )}
+
 
                     {Object.keys(groupedAbilities).length > 0 && (
                       <Card id="abilities" title="Abilities" defaultExpanded={false}>
