@@ -541,47 +541,49 @@ const getWeaponDisplayData = (weaponType) => {
           };
 
           const favoriteEquipment = useMemo(() => {
-            if (!payload) return null;
+  if (!payload) return null;
 
-            const pactUsage = {};
-            Object.entries(groupedAbilities).forEach(([pact, abilities]) => {
-              pactUsage[pact] = abilities.reduce((sum, ab) => sum + (ab.used || 0), 0);
-            });
-            const favoritePact = Object.entries(pactUsage).reduce((max, [pact, usage]) => 
-              usage > (max.usage || 0) ? { pact, usage } : max, {}
-            );
+  const pactUsage = {};
+  Object.entries(groupedAbilities).forEach(([pact, abilities]) => {
+    pactUsage[pact] = abilities.reduce((sum, ab) => sum + (ab.used || 0), 0);
+  });
+  const favoritePact = Object.entries(pactUsage).reduce((max, [pact, usage]) => 
+    usage > (max.usage || 0) ? { pact, usage } : max, {}
+  );
 
-            const favoriteMainWeapon = groupedWeapons.main.reduce((max, weapon) => {
-              const equipTime = weapon.equipTime || 0;
-              return equipTime > (max.equipTime || 0) ? { 
-                name: getWeaponDisplayName(weapon.type), 
-                equipTime 
-              } : max;
-            }, {});
+  // Correction pour les armes principales
+  const favoriteMainWeapon = Object.values(groupedWeapons.main).flat().reduce((max, weapon) => {
+    const equipTime = weapon.equipTime || 0;
+    return equipTime > (max.equipTime || 0) ? { 
+      name: getWeaponDisplayData(weapon.type).name, 
+      equipTime 
+    } : max;
+  }, {});
 
-            const favoriteSecondaryWeapon = groupedWeapons.secondary.reduce((max, weapon) => {
-              const equipTime = weapon.equipTime || 0;
-              return equipTime > (max.equipTime || 0) ? { 
-                name: getWeaponDisplayName(weapon.type), 
-                equipTime 
-              } : max;
-            }, {});
+  // Correction pour les armes secondaires
+  const favoriteSecondaryWeapon = Object.values(groupedWeapons.secondary).flat().reduce((max, weapon) => {
+    const equipTime = weapon.equipTime || 0;
+    return equipTime > (max.equipTime || 0) ? { 
+      name: getWeaponDisplayData(weapon.type).name, 
+      equipTime 
+    } : max;
+  }, {});
 
-            const favoriteSubBoss = groupedEnemies.SUBBOSS?.enemies.reduce((max, enemy) => {
-              const kills = enemy.kills || 0;
-              return kills > (max.kills || 0) ? { 
-                name: getSubBossDisplayName(enemy.type), 
-                kills 
-              } : max;
-            }, {}) || { name: "Aucun", kills: 0 };
+  const favoriteSubBoss = groupedEnemies.SUBBOSS?.enemies.reduce((max, enemy) => {
+    const kills = enemy.kills || 0;
+    return kills > (max.kills || 0) ? { 
+      name: getSubBossDisplayName(enemy.type), 
+      kills 
+    } : max;
+  }, {}) || { name: "Aucun", kills: 0 };
 
-            return {
-              favoritePact,
-              favoriteMainWeapon,
-              favoriteSecondaryWeapon,
-              favoriteSubBoss
-            };
-          }, [payload, groupedAbilities, groupedWeapons, groupedEnemies]);
+  return {
+    favoritePact,
+    favoriteMainWeapon,
+    favoriteSecondaryWeapon,
+    favoriteSubBoss
+  };
+}, [payload, groupedAbilities, groupedWeapons, groupedEnemies]);
 
           const formatXP = (xp) => {
             if (xp >= 1000000) {
