@@ -144,21 +144,22 @@ td, th {
   z-index: 999999 !important;
   pointer-events: none;
 }
-/* Image fixe en bas de l'écran */
-.fixed-bottom-image {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 150px; /* Ajuste la hauteur selon tes besoins */
-    background-image: url('https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/trees.png');
-    background-size: cover;
-    background-position: center top;
-    background-repeat: no-repeat;
-    z-index: 40;
-    pointer-events: none; /* Permet de cliquer à travers l'image */
-    opacity: 0.7; /* Ajuste la transparence si besoin */
-}        
+ /* === IMAGE FIXE EN BAS === */
+    .fixed-bottom-image {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 60px; /* Réduit de 150px à 60px */
+        background-image: url('https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/trees.png');
+        background-size: contain; /* Change de 'cover' à 'contain' */
+        background-position: center bottom;
+        background-repeat: no-repeat;
+        z-index: 40;
+        pointer-events: none;
+        opacity: 0.9; /* Augmente l'opacité */
+        background-color: rgba(13, 13, 11, 0.3); /* Ajoute un fond semi-transparent */
+    }
         
     </style>
 </head>
