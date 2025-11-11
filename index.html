@@ -962,37 +962,35 @@ const getWeaponDisplayData = (weaponType) => {
               const weaponData = getWeaponDisplayData(w.type);
               return [
                 <div className="flex items-center gap-2 relative group" key={w.type}>
-  <div className="relative">
-    <div className="w-8 h-8 flex items-center justify-center bg-amber-900/20 rounded-sm overflow-hidden">
-      <img 
-        src={weaponData.icon} 
+  <div className="w-8 h-8 flex items-center justify-center bg-amber-900/20 rounded-sm overflow-hidden">
+    <img 
+      src={weaponData.icon} 
+      alt={weaponData.name}
+      className="w-7 h-7 object-scale-down transition-all duration-300 group-hover:scale-110 cursor-help group-hover:brightness-110 group-hover:contrast-110"
+      style={{ 
+        transform: 'scale(0.8)',
+        transformOrigin: 'center'
+      }}
+    />
+  </div>
+  
+  {/* Tooltip au niveau de la cellule */}
+  <div className="absolute bottom-full left-0 transform translate-x-2 mb-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 z-[9999] pointer-events-none">
+    <div className="bg-gradient-to-br from-[#1a1814] to-[#2a2824] border border-amber-600/50 rounded-lg p-3 shadow-2xl shadow-amber-900/20 backdrop-blur-sm">
+      <img
+        src={weaponData.icon}
         alt={weaponData.name}
-        className="w-7 h-7 object-scale-down transition-all duration-300 group-hover:scale-110 cursor-help group-hover:brightness-110 group-hover:contrast-110"
-        style={{ 
-          transform: 'scale(0.8)',
-          transformOrigin: 'center'
-        }}
+        className="w-24 h-24 object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.3)]"
+        loading="lazy"
       />
-    </div>
-    
-    {/* Tooltip */}
-    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 z-[9999] pointer-events-none">
-      <div className="bg-gradient-to-br from-[#1a1814] to-[#2a2824] border border-amber-600/50 rounded-lg p-3 shadow-2xl shadow-amber-900/20 backdrop-blur-sm">
-        <img
-          src={weaponData.icon}
-          alt={weaponData.name}
-          className="w-24 h-24 object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.3)]"
-          loading="lazy"
-        />
-        <div className="text-amber-200 text-xs text-center mt-2 font-medium bg-amber-900/20 px-2 py-1 rounded">
-          {weaponData.name}
-        </div>
+      <div className="text-amber-200 text-xs text-center mt-2 font-medium bg-amber-900/20 px-2 py-1 rounded">
+        {weaponData.name}
       </div>
     </div>
   </div>
   
   <span>{weaponData.name}</span>
-</div>,
+</div>
             
                 
                 w.kills?.toLocaleString() ?? "0",
