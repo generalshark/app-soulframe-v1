@@ -89,7 +89,19 @@ td, th {
 #weapons .group .absolute {
   z-index: 999999 !important;
   pointer-events: none;
-}        
+} 
+ /* Couleurs personnalisées pour les factions */
+.bg-faction-champion {
+  background: linear-gradient(to right, hsl(1, 69%, 60%), hsl(1, 69%, 50%));
+}
+
+.bg-faction-fey {
+  background: linear-gradient(to right, hsl(146, 32%, 47%), hsl(146, 32%, 37%));
+}
+
+.bg-faction-silentRose {
+  background: linear-gradient(to right, hsl(217, 50%, 58%), hsl(217, 50%, 48%));
+}       
     </style>
 </head>
 <body>
@@ -159,8 +171,17 @@ td, th {
   const colorClasses = {
     amber: "from-amber-500 to-amber-300",
     green: "from-green-500 to-green-300", 
-    blue: "from-blue-500 to-blue-300",
-    pink: "from-pink-500 to-pink-300"
+    // Nouvelles couleurs pour les factions
+    champion: "from-red-500 to-red-400",
+    fey: "from-green-500 to-green-400",
+    silentRose: "from-blue-500 to-blue-400"
+  };
+
+  // Styles inline pour les couleurs personnalisées
+  const customColors = {
+    champion: { background: "linear-gradient(to right, hsl(1, 69%, 60%), hsl(1, 69%, 50%))" },
+    fey: { background: "linear-gradient(to right, hsl(146, 32%, 47%), hsl(146, 32%, 37%))" },
+    silentRose: { background: "linear-gradient(to right, hsl(217, 50%, 58%), hsl(217, 50%, 48%))" }
   };
 
   return (
@@ -168,12 +189,15 @@ td, th {
       <div className="flex justify-between text-xs">
         <span className="text-amber-200/80">{label}</span>
         <span className="text-amber-300">{value?.toLocaleString?.() ?? 0}</span>
-      </div>
-      <div className="w-full bg-amber-900/20 rounded-full h-2 overflow-hidden">
-        <div 
-          className={`h-full bg-gradient-to-r ${colorClasses[color]} rounded-full transition-all duration-1000 ease-out`}
-          style={{ width: `${Math.min(percentage, 100)}%` }}
-        />
+      <div 
+  className={`h-full rounded-full transition-all duration-1000 ease-out ${
+    color === 'champion' ? 'bg-faction-champion' :
+    color === 'fey' ? 'bg-faction-fey' :
+    color === 'silentRose' ? 'bg-faction-silentRose' :
+    `bg-gradient-to-r ${colorClasses[color]}`
+  }`}
+  style={{ width: `${Math.min(percentage, 100)}%` }}
+/>
       </div>
     </div>
   );
@@ -767,50 +791,77 @@ const getWeaponDisplayData = (weaponType) => {
 
   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
     <div className="space-y-3">
-      <h3 className="text-amber-400 font-semibold">Factions Progress</h3>
-      <div className="space-y-2">
-        <ProgressBar
-          label="⚔️ Champion Syndicate"
-          value={playerInfo.championStanding}
-          max={30000}
-          color="blue"
-        />
-        <ProgressBar
-          label="🌿 Fey Syndicate"
-          value={playerInfo.feyStanding}
-          max={30000}
-          color="green"
-        />
-        <ProgressBar
-          label="🌹 Silent Rose Syndicate"
-          value={playerInfo.silentRoseStanding}
-          max={30000}
-          color="pink"
-        />
-      </div>
-    </div>
+  <h3 className="text-amber-400 font-semibold">Factions Progress</h3>
+  <div className="space-y-2">
+    <ProgressBar
+      label={
+        <div className="flex items-center gap-2">
+          <img 
+            src="https://static.wikitide.net/soulframewiki/thumb/1/1a/ChampionFaction.png/165px-ChampionFaction.png" 
+            alt="Kith of King" 
+            className="w-4 h-4 object-contain rounded-sm"
+          />
+          <span>Kith of King</span>
+        </div>
+      }
+      value={playerInfo.championStanding}
+      max={30000}
+      color="champion"
+    />
+    <ProgressBar
+      label={
+        <div className="flex items-center gap-2">
+          <img 
+            src="https://static.wikitide.net/soulframewiki/thumb/9/92/AlcasChildrenFactionIcon.png/165px-AlcasChildrenFactionIcon.png" 
+            alt="Alca Children" 
+            className="w-4 h-4 object-contain rounded-sm"
+          />
+          <span>Alca Children</span>
+        </div>
+      }
+      value={playerInfo.feyStanding}
+      max={30000}
+      color="fey"
+    />
+    <ProgressBar
+      label={
+        <div className="flex items-center gap-2">
+          <img 
+            src="https://static.wikitide.net/soulframewiki/c/c1/Map-SilentRoseIcon.png" 
+            alt="The Silent Rose" 
+            className="w-4 h-4 object-contain rounded-sm"
+          />
+          <span>The Silent Rose</span>
+        </div>
+      }
+      value={playerInfo.silentRoseStanding}
+      max={30000}
+      color="silentRose"
+    />
+  </div>
+</div>
 
     <div className="space-y-3">
-      <h3 className="text-amber-400 font-semibold">Combat Stats</h3>
-      <div className="space-y-2">
-        <ProgressBar
-          label="Total Kills"
-          value={totalStats.totalKills}
-          max={Math.max(totalStats.totalKills, 1000)}
-        />
-        <ProgressBar
-          label="Headshots"
-          value={totalStats.totalHeadshots}
-          max={totalStats.totalKills}
-          color="green"
-        />
-        <div className="flex justify-between text-xs text-amber-300">
-          <span>Headshot Ratio</span>
-          <span>{totalStats.headshotRatio}</span>
-        </div>
-      </div>
+  <h3 className="text-amber-400 font-semibold">Combat Stats</h3>
+  <div className="space-y-2">
+    <ProgressBar
+      label="Total Kills"
+      value={totalStats.totalKills}
+      max={Math.max(totalStats.totalKills, 1000)}
+      color="amber"
+    />
+    <ProgressBar
+      label="Headshots"
+      value={totalStats.totalHeadshots}
+      max={totalStats.totalKills}
+      color="fey" // Utilise la couleur Fey (vert) pour Headshots
+    />
+    <div className="flex justify-between text-xs text-amber-300">
+      <span>Headshot Ratio</span>
+      <span>{totalStats.headshotRatio}</span>
     </div>
   </div>
+</div>
 
   <div className="mt-6 pt-6 border-t border-amber-800/40">
     <h3 className="text-amber-400 font-semibold mb-4">Économie & Collecte</h3>
