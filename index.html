@@ -878,7 +878,7 @@ const getWeaponDisplayData = (weaponType) => {
                       <Card id="favorite-equipment" title="⭐ Favorite Equipment">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
-//carte "Favorite Pact"  Favorite                        
+{/* carte "Favorite Pact" Favorite */}                       
                             
                             <div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
   <div className="flex items-center gap-2 mb-2">
@@ -900,7 +900,7 @@ const getWeaponDisplayData = (weaponType) => {
   </div>
 </div>
                             
-//  carte "Main Weapon" Favorite
+{/* carte "main weapon" Favorite */}
                             
                              <div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
   <div className="flex items-center gap-2 mb-2">
@@ -930,7 +930,7 @@ const getWeaponDisplayData = (weaponType) => {
   </div>
 </div>
 
-//"Secondary Weapon" Favorite
+{/* carte "secondary weapon" Favorite */}
 
                           <div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
   <div className="flex items-center gap-2 mb-2">
@@ -960,7 +960,7 @@ const getWeaponDisplayData = (weaponType) => {
   </div>
 </div>
 
-//carte "Favorite SubBoss" Favorite
+{/* carte "Favorite SubBooss" Favorite */}
                         
                           <div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
   <div className="flex items-center gap-2 mb-2">
@@ -991,26 +991,7 @@ const getWeaponDisplayData = (weaponType) => {
   </Card> 
 )}                          
 
-                    {groupedEnemies.SUBBOSS && groupedEnemies.SUBBOSS.enemies.length > 0 && (
-                      <Card id="subboss" title="👑 Sub Bosses" defaultExpanded={false}>
-                        <div className="relative">
-                          <div className="absolute inset-0 bg-gradient-to-r from-red-900/10 to-amber-900/10 rounded-xl blur-sm"></div>
-                          <div className="relative bg-gradient-to-br from-[#2a1a0a] to-[#1a0f05] border-2 border-amber-500/50 rounded-xl p-5 shadow-2xl shadow-amber-900/30">
-                            <h3 className="text-amber-300 text-xl font-bold mb-4 pb-2 border-b border-amber-500/40 flex items-center gap-3">
-                              <span className="text-2xl">👑</span>
-                              {groupedEnemies.SUBBOSS.name}
-                              <span className="text-amber-400/70 text-sm font-normal ml-2">
-                                ({groupedEnemies.SUBBOSS.enemies.length} subbosses)
-                              </span>
-                            </h3>
-                            <DataTable
-  headers={[
-    "SubBoss",
-    "Kills", 
-    "Headshots",
-    "Executions", 
-    "Deaths"
-  ]}
+                   
   data={groupedEnemies.SUBBOSS && groupedEnemies.SUBBOSS.enemies.length > 0 && (
   <Card id="subboss" title="👑 Sub Bosses" defaultExpanded={false}>
     <div className="relative">
@@ -1031,6 +1012,10 @@ const getWeaponDisplayData = (weaponType) => {
             "Executions", 
             "Deaths"
           ]}
+ </div>
+  </Card>
+)}
+            
           data={groupedEnemies.SUBBOSS.enemies.map((e) => {
             const subBossName = getSubBossDisplayName(e.type);
             const subBossIcon = SUBBOSS_CATEGORY.labels[e.type?.split("/")?.pop()]?.icon || "⚔️";
