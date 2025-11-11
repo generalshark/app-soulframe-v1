@@ -903,126 +903,125 @@ const getWeaponDisplayData = (weaponType) => {
 </Card>
 
                     {favoriteEquipment && (
-                      <Card id="favorite-equipment" title="⭐ Favorite Equipment">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+  <Card id="favorite-equipment" title="⭐ Favorite Equipment">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      {/* Carte Favorite Pact */}
+      <div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-amber-400 text-lg">⚜️</span>
+          <span className="text-xs uppercase text-amber-300/70 tracking-wide font-medium">Favorite Pact</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-lg font-bold text-amber-100 group-hover:text-amber-50 transition-colors mb-1 block">
+              {favoriteEquipment.favoritePact.pact || "—"}
+            </span>
+            <span className="text-sm text-amber-400/70">
+              {favoriteEquipment.favoritePact.usage?.toLocaleString() || "0"} uses
+            </span>
+          </div>
+          <div className="w-20 h-20 bg-amber-900/20 rounded-lg flex items-center justify-center overflow-hidden">
+            {PACT_ICONS[favoriteEquipment.favoritePact.pact] ? (
+              <img
+                src={PACT_ICONS[favoriteEquipment.favoritePact.pact]}
+                alt={favoriteEquipment.favoritePact.pact}
+                className="w-16 h-16 object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.3)]"
+              />
+            ) : (
+              <span className="text-amber-400/40 text-lg">⚜️</span>
+            )}
+          </div>
+        </div>
+      </div>
 
-{/* carte "Favorite Pact" Favorite */}                       
-                            
-                            <div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
-  <div className="flex items-center gap-2 mb-2">
-    <span className="text-amber-400 text-lg">⚜️</span>
-    <span className="text-xs uppercase text-amber-300/70 tracking-wide font-medium">Favorite Pact</span>
-  </div>
-  <div className="flex items-center justify-between">
-    <div>
-      <span className="text-lg font-bold text-amber-100 group-hover:text-amber-50 transition-colors mb-1 block">
-        {favoriteEquipment.favoritePact.pact || "—"}
-      </span>
-      <span className="text-sm text-amber-400/70">
-        {favoriteEquipment.favoritePact.usage?.toLocaleString() || "0"} uses
-      </span>
-    </div>
-   <div className="w-20 h-20 bg-amber-900/20 rounded-lg flex items-center justify-center overflow-hidden">
-  {PACT_ICONS[favoriteEquipment.favoritePact.pact] ? (
-    <img
-      src={PACT_ICONS[favoriteEquipment.favoritePact.pact]}
-      alt={favoriteEquipment.favoritePact.pact}
-      className="w-16 h-16 object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.3)]"
-    />
-  ) : (
-    <span className="text-amber-400/40 text-lg">⚜️</span>
-  )}
-</div>
-                            
-{/* carte "main weapon" Favorite */}
-                            
-                             <div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
-  <div className="flex items-center gap-2 mb-2">
-    <span className="text-amber-400 text-lg">⚔️</span>
-    <span className="text-xs uppercase text-amber-300/70 tracking-wide font-medium">Main Weapon</span>
-  </div>
-  <div className="flex items-center justify-between">
-    <div>
-      <span className="text-lg font-bold text-amber-100 group-hover:text-amber-50 transition-colors mb-1 block">
-        {favoriteEquipment.favoriteMainWeapon.name || "—"}
-      </span>
-      <span className="text-sm text-amber-400/70">
-        {favoriteEquipment.favoriteMainWeapon.equipTime 
-          ? `${(favoriteEquipment.favoriteMainWeapon.equipTime / 3600).toFixed(1)} h` 
-          : "0 h"}
-      </span>
-    </div>
-    <div className="w-20 h-12 bg-amber-900/20 rounded-lg flex items-center justify-center overflow-hidden">
-      {favoriteEquipment.favoriteMainWeapon.name && (
-        <img 
-          src={getWeaponDisplayData(weapons.find(w => getWeaponDisplayData(w.type).name === favoriteEquipment.favoriteMainWeapon.name)?.type)?.icon} 
-          alt={favoriteEquipment.favoriteMainWeapon.name}
-          className="w-16 h-16 object-contain"
-        />
-      )}
-    </div>
-  </div>
-</div>
+      {/* Carte Main Weapon */}
+      <div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-amber-400 text-lg">⚔️</span>
+          <span className="text-xs uppercase text-amber-300/70 tracking-wide font-medium">Main Weapon</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-lg font-bold text-amber-100 group-hover:text-amber-50 transition-colors mb-1 block">
+              {favoriteEquipment.favoriteMainWeapon.name || "—"}
+            </span>
+            <span className="text-sm text-amber-400/70">
+              {favoriteEquipment.favoriteMainWeapon.equipTime 
+                ? `${(favoriteEquipment.favoriteMainWeapon.equipTime / 3600).toFixed(1)} h` 
+                : "0 h"}
+            </span>
+          </div>
+          <div className="w-20 h-12 bg-amber-900/20 rounded-lg flex items-center justify-center overflow-hidden">
+            {favoriteEquipment.favoriteMainWeapon.name && (
+              <img 
+                src={getWeaponDisplayData(weapons.find(w => getWeaponDisplayData(w.type).name === favoriteEquipment.favoriteMainWeapon.name)?.type)?.icon} 
+                alt={favoriteEquipment.favoriteMainWeapon.name}
+                className="w-16 h-16 object-contain"
+              />
+            )}
+          </div>
+        </div>
+      </div>
 
-{/* carte "secondary weapon" Favorite */}
+      {/* Carte Secondary Weapon */}
+      <div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-amber-400 text-lg">🗡️</span>
+          <span className="text-xs uppercase text-amber-300/70 tracking-wide font-medium">Secondary Weapon</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-lg font-bold text-amber-100 group-hover:text-amber-50 transition-colors mb-1 block">
+              {favoriteEquipment.favoriteSecondaryWeapon.name || "—"}
+            </span>
+            <span className="text-sm text-amber-400/70">
+              {favoriteEquipment.favoriteSecondaryWeapon.equipTime 
+                ? `${(favoriteEquipment.favoriteSecondaryWeapon.equipTime / 3600).toFixed(1)} h` 
+                : "0 h"}
+            </span>
+          </div>
+          <div className="w-20 h-12 bg-amber-900/20 rounded-lg flex items-center justify-center overflow-hidden">
+            {favoriteEquipment.favoriteSecondaryWeapon.name && (
+              <img 
+                src={getWeaponDisplayData(weapons.find(w => getWeaponDisplayData(w.type).name === favoriteEquipment.favoriteSecondaryWeapon.name)?.type)?.icon} 
+                alt={favoriteEquipment.favoriteSecondaryWeapon.name}
+                className="w-16 h-16 object-contain"
+              />
+            )}
+          </div>
+        </div>
+      </div>
 
-                          <div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
-  <div className="flex items-center gap-2 mb-2">
-    <span className="text-amber-400 text-lg">🗡️</span>
-    <span className="text-xs uppercase text-amber-300/70 tracking-wide font-medium">Secondary Weapon</span>
-  </div>
-  <div className="flex items-center justify-between">
-    <div>
-      <span className="text-lg font-bold text-amber-100 group-hover:text-amber-50 transition-colors mb-1 block">
-        {favoriteEquipment.favoriteSecondaryWeapon.name || "—"}
-      </span>
-      <span className="text-sm text-amber-400/70">
-        {favoriteEquipment.favoriteSecondaryWeapon.equipTime 
-          ? `${(favoriteEquipment.favoriteSecondaryWeapon.equipTime / 3600).toFixed(1)} h` 
-          : "0 h"}
-      </span>
-    </div>
-    <div className="w-20 h-12 bg-amber-900/20 rounded-lg flex items-center justify-center overflow-hidden">
-      {favoriteEquipment.favoriteSecondaryWeapon.name && (
-        <img 
-          src={getWeaponDisplayData(weapons.find(w => getWeaponDisplayData(w.type).name === favoriteEquipment.favoriteSecondaryWeapon.name)?.type)?.icon} 
-          alt={favoriteEquipment.favoriteSecondaryWeapon.name}
-          className="w-16 h-16 object-contain"
-        />
-      )}
-    </div>
-  </div>
-</div>
+      {/* Carte Favorite SubBoss */}
+      <div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-amber-400 text-lg">👑</span>
+          <span className="text-xs uppercase text-amber-300/70 tracking-wide font-medium">Favorite SubBoss</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-lg font-bold text-amber-100 group-hover:text-amber-50 transition-colors mb-1 block">
+              {favoriteEquipment.favoriteSubBoss.name || "—"}
+            </span>
+            <span className="text-sm text-amber-400/70">
+              {favoriteEquipment.favoriteSubBoss.kills?.toLocaleString() || "0"} kills
+            </span>
+          </div>
+          <div className="w-20 h-12 bg-amber-900/20 rounded-lg flex items-center justify-center overflow-hidden">
+            {favoriteEquipment.favoriteSubBoss.name && favoriteEquipment.favoriteSubBoss.name !== "Aucun" && (
+              <img 
+                src={Object.values(SUBBOSS_CATEGORY.labels).find(boss => boss.name === favoriteEquipment.favoriteSubBoss.name)?.icon} 
+                alt={favoriteEquipment.favoriteSubBoss.name}
+                className="w-16 h-16 object-cover rounded-sm"
+              />
+            )}
+          </div>
+        </div>
+      </div>
 
-{/* carte "Favorite SubBooss" Favorite */}
-<div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
-  <div className="flex items-center gap-2 mb-2">
-    <span className="text-amber-400 text-lg">👑</span>
-    <span className="text-xs uppercase text-amber-300/70 tracking-wide font-medium">Favorite SubBoss</span>
-  </div>
-  <div className="flex items-center justify-between">
-    <div>
-      <span className="text-lg font-bold text-amber-100 group-hover:text-amber-50 transition-colors mb-1 block">
-        {favoriteEquipment.favoriteSubBoss.name || "—"}
-      </span>
-      <span className="text-sm text-amber-400/70">
-        {favoriteEquipment.favoriteSubBoss.kills?.toLocaleString() || "0"} kills
-      </span>
     </div>
-    <div className="w-20 h-12 bg-amber-900/20 rounded-lg flex items-center justify-center overflow-hidden">
-      {favoriteEquipment.favoriteSubBoss.name && favoriteEquipment.favoriteSubBoss.name !== "Aucun" && (
-        <img 
-          src={Object.values(SUBBOSS_CATEGORY.labels).find(boss => boss.name === favoriteEquipment.favoriteSubBoss.name)?.icon} 
-          alt={favoriteEquipment.favoriteSubBoss.name}
-          className="w-16 h-16 object-cover rounded-sm"
-        />
-      )}
-    </div>
-  </div>
-</div>
-
-</div> 
-</Card> 
+  </Card>
 )}                 
 
                    
