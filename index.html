@@ -169,19 +169,12 @@ td, th {
   const percentage = max ? (value / max) * 100 : 0;
   
   const colorClasses = {
-    amber: "from-amber-500 to-amber-300",
-    green: "from-green-500 to-green-300", 
-    // Nouvelles couleurs pour les factions
-    champion: "from-red-500 to-red-400",
-    fey: "from-green-500 to-green-400",
-    silentRose: "from-blue-500 to-blue-400"
-  };
-
-  // Styles inline pour les couleurs personnalisées
-  const customColors = {
-    champion: { background: "linear-gradient(to right, hsl(1, 69%, 60%), hsl(1, 69%, 50%))" },
-    fey: { background: "linear-gradient(to right, hsl(146, 32%, 47%), hsl(146, 32%, 37%))" },
-    silentRose: { background: "linear-gradient(to right, hsl(217, 50%, 58%), hsl(217, 50%, 48%))" }
+    amber: "bg-gradient-to-r from-amber-500 to-amber-300",
+    green: "bg-gradient-to-r from-green-500 to-green-300", 
+    // Utilisez les couleurs Tailwind qui fonctionnent
+    champion: "bg-gradient-to-r from-red-500 to-red-400",
+    fey: "bg-gradient-to-r from-green-500 to-green-400", 
+    silentRose: "bg-gradient-to-r from-blue-500 to-blue-400"
   };
 
   return (
@@ -189,15 +182,12 @@ td, th {
       <div className="flex justify-between text-xs">
         <span className="text-amber-200/80">{label}</span>
         <span className="text-amber-300">{value?.toLocaleString?.() ?? 0}</span>
-      <div 
-  className={`h-full rounded-full transition-all duration-1000 ease-out ${
-    color === 'champion' ? 'bg-faction-champion' :
-    color === 'fey' ? 'bg-faction-fey' :
-    color === 'silentRose' ? 'bg-faction-silentRose' :
-    `bg-gradient-to-r ${colorClasses[color]}`
-  }`}
-  style={{ width: `${Math.min(percentage, 100)}%` }}
-/>
+      </div>
+      <div className="w-full bg-amber-900/20 rounded-full h-2 overflow-hidden">
+        <div 
+          className={`h-full rounded-full transition-all duration-1000 ease-out ${colorClasses[color] || colorClasses.amber}`}
+          style={{ width: `${Math.min(percentage, 100)}%` }}
+        />
       </div>
     </div>
   );
