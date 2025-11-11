@@ -79,6 +79,17 @@ td, th {
 .group:hover .absolute {
     z-index: 999999 !important;
 }
+/* Désactive le clipping des tooltips dans les tableaux d’armes */
+#weapons .overflow-auto {
+  overflow: visible !important;
+}
+
+/* Garantit que les tooltips restent au-dessus de tout */
+#weapons .group:hover .absolute,
+#weapons .group .absolute {
+  z-index: 999999 !important;
+  pointer-events: none;
+}        
     </style>
 </head>
 <body>
