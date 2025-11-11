@@ -154,22 +154,30 @@ td, th {
         );
 
         const ProgressBar = ({ value, max, label, color = "amber" }) => {
-          const percentage = max ? (value / max) * 100 : 0;
-          return (
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="text-amber-200/80">{label}</span>
-                <span className="text-amber-300">{value?.toLocaleString?.() ?? 0}</span>
-              </div>
-              <div className="w-full bg-amber-900/20 rounded-full h-2 overflow-hidden">
-                <div 
-                  className={`h-full bg-gradient-to-r from-${color}-500 to-${color}-300 rounded-full transition-all duration-1000 ease-out`}
-                  style={{ width: `${Math.min(percentage, 100)}%` }}
-                />
-              </div>
-            </div>
-          );
-        };
+  const percentage = max ? (value / max) * 100 : 0;
+  
+  const colorClasses = {
+    amber: "from-amber-500 to-amber-300",
+    green: "from-green-500 to-green-300", 
+    blue: "from-blue-500 to-blue-300",
+    pink: "from-pink-500 to-pink-300"
+  };
+
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-xs">
+        <span className="text-amber-200/80">{label}</span>
+        <span className="text-amber-300">{value?.toLocaleString?.() ?? 0}</span>
+      </div>
+      <div className="w-full bg-amber-900/20 rounded-full h-2 overflow-hidden">
+        <div 
+          className={`h-full bg-gradient-to-r ${colorClasses[color]} rounded-full transition-all duration-1000 ease-out`}
+          style={{ width: `${Math.min(percentage, 100)}%` }}
+        />
+      </div>
+    </div>
+  );
+};
 
         const DataTable = ({ headers, data, className = "", isBoss = false }) => (
           <div className={`overflow-auto rounded-xl border ${isBoss ? "border-amber-600/30" : "border-amber-800/40"} shadow-inner ${className}`}>
@@ -421,13 +429,28 @@ td, th {
         };
 
         const App = () => {
-          const [payload, setPayload] = useState(null);
-          const [error, setError] = useState("");
-          const [accountId, setAccountId] = useState("");
-          const [isUpdating, setIsUpdating] = useState(false);
-          const [updateMessage, setUpdateMessage] = useState("");
+  const [payload, setPayload] = useState(null);
+  const [error, setError] = useState("");
+  const [accountId, setAccountId] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateMessage, setUpdateMessage] = useState("");
 
-          async function fetchViaId(idOverride) {
+  // Charger l'AccountId depuis le localStorage au démarrage
+  useEffect(() => {
+    const savedAccountId = localStorage.getItem('soulframe_accountId');
+    if (savedAccountId) {
+      setAccountId(savedAccountId);
+    }
+  }, []);
+
+  // Sauvegarder l'AccountId quand il change
+  useEffect(() => {
+    if (accountId) {
+      localStorage.setItem('soulframe_accountId', accountId);
+    }
+  }, [accountId]);
+
+  async function fetchViaId(idOverride) {
             const id = idOverride || accountId;
             if (!id) return setError("Veuillez entrer un AccountId valide.");
             try {
@@ -457,22 +480,36 @@ td, th {
           const weapons = stats.Weapons || [];
 
           const playerInfo = useMemo(() => {
-            if (!r0) return null;
-            const created = r0?.Created?.$date?.$numberLong;
-            return {
-              name: r0?.DisplayName,
-              accountOid: r0?.AccountId?.$oid,
-              created: new Date(Number(created)).toLocaleDateString(),
-              mastery: stats?.PlayerLevel ?? "—",
-              timePlayedH: stats?.TimePlayedSec
-                ? (stats.TimePlayedSec / 3600).toFixed(1) + " h"
-                : "—",
-              migrated: r0?.MigratedToConsole ? "Yes" : "No",
-              xp: stats?.XP ? stats.XP.toLocaleString() : "—",
-              pickupCount: stats?.PickupCount ? stats.PickupCount.toLocaleString() : "—",
-              income: stats?.Income ? stats.Income.toLocaleString() : "—"
-            };
-          }, [r0, stats]);
+  if (!r0) return null;
+  const created = r0?.Created?.$date?.$numberLong;
+  
+  // Extraction des factions depuis Affiliations
+  const factions = r0?.Affiliations || [];
+  const championFaction = factions.find(f => f.Tag === "ChampionSyndicate");
+  const feyFaction = factions.find(f => f.Tag === "FeySyndicate"); 
+  const silentRoseFaction = factions.find(f => f.Tag === "SilentRoseSyndicate");
+
+  return {
+    name: r0?.DisplayName,
+    accountOid: r0?.AccountId?.$oid,
+    created: new Date(Number(created)).toLocaleDateString(),
+    mastery: stats?.PlayerLevel ?? "—",
+    timePlayedH: stats?.TimePlayedSec
+      ? (stats.TimePlayedSec / 3600).toFixed(1) + " h"
+      : "—",
+    migrated: r0?.MigratedToConsole ? "Yes" : "No",
+    xp: stats?.XP ? stats.XP.toLocaleString() : "—",
+    pickupCount: stats?.PickupCount ? stats.PickupCount.toLocaleString() : "—",
+    income: stats?.Income ? stats.Income.toLocaleString() : "—",
+    // Nouvelles données factions
+    championStanding: championFaction?.Standing ?? 0,
+    championTitle: championFaction?.Title ?? 0,
+    feyStanding: feyFaction?.Standing ?? 0,
+    feyTitle: feyFaction?.Title ?? 0,
+    silentRoseStanding: silentRoseFaction?.Standing ?? 0,
+    silentRoseTitle: silentRoseFaction?.Title ?? 0
+  };
+}, [r0, stats]);
 
           const groupedAbilities = useMemo(() => {
             const groups = {};
@@ -637,7 +674,15 @@ const getWeaponDisplayData = (weaponType) => {
             }
             return xp.toLocaleString();
           };
-          
+           const formatStanding = (standing) => {
+  if (standing >= 1000000) {
+    return (standing / 1000000).toFixed(1) + 'M';
+  } else if (standing >= 1000) {
+    return (standing / 1000).toFixed(1) + 'K';
+  }
+  return standing.toLocaleString();
+};
+        
           return (
            <div className="min-h-screen text-amber-100 font-[Cormorant_Garamond]">
               <nav className="sticky top-0 z-50 backdrop-blur-md bg-[#12120f]/90 border-b border-amber-900/40 shadow-2xl shadow-amber-900/10">
@@ -713,60 +758,76 @@ const getWeaponDisplayData = (weaponType) => {
                 {playerInfo && (
                   <>
                     <Card id="player" title="Player Information">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        <Stat label="Player Name" value={playerInfo.name} icon="👤" />
-                        <Stat label="Mastery Rank" value={playerInfo.mastery} icon="⭐" />
-                        <Stat label="Time Played" value={playerInfo.timePlayedH} icon="⏱️" />
-                        <Stat label="Total XP" value={playerInfo.xp} icon="📊" />
-                      </div>
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <Stat label="Player Name" value={playerInfo.name} icon="👤" />
+    <Stat label="Mastery Rank" value={playerInfo.mastery} icon="⭐" />
+    <Stat label="Time Played" value={playerInfo.timePlayedH} icon="⏱️" />
+    <Stat label="Account Created" value={playerInfo.created} icon="📅" />
+  </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-3">
-                          <h3 className="text-amber-400 font-semibold">Account Details</h3>
-                          <div className="grid grid-cols-2 gap-3">
-                            <Stat label="Account Created" value={playerInfo.created} icon="📅" />
-                            <Stat label="Migrated" value={playerInfo.migrated} icon="🔄" />
-                          </div>
-                        </div>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="space-y-3">
+      <h3 className="text-amber-400 font-semibold">Factions Progress</h3>
+      <div className="space-y-2">
+        <ProgressBar
+          label="⚔️ Champion Syndicate"
+          value={playerInfo.championStanding}
+          max={30000}
+          color="blue"
+        />
+        <ProgressBar
+          label="🌿 Fey Syndicate"
+          value={playerInfo.feyStanding}
+          max={30000}
+          color="green"
+        />
+        <ProgressBar
+          label="🌹 Silent Rose Syndicate"
+          value={playerInfo.silentRoseStanding}
+          max={30000}
+          color="pink"
+        />
+      </div>
+    </div>
 
-                        <div className="space-y-3">
-                          <h3 className="text-amber-400 font-semibold">Combat Stats</h3>
-                          <div className="space-y-2">
-                            <ProgressBar
-                              label="Total Kills"
-                              value={totalStats.totalKills}
-                              max={Math.max(totalStats.totalKills, 1000)}
-                            />
-                            <ProgressBar
-                              label="Headshots"
-                              value={totalStats.totalHeadshots}
-                              max={totalStats.totalKills}
-                              color="green"
-                            />
-                            <div className="flex justify-between text-xs text-amber-300">
-                              <span>Headshot Ratio</span>
-                              <span>{totalStats.headshotRatio}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+    <div className="space-y-3">
+      <h3 className="text-amber-400 font-semibold">Combat Stats</h3>
+      <div className="space-y-2">
+        <ProgressBar
+          label="Total Kills"
+          value={totalStats.totalKills}
+          max={Math.max(totalStats.totalKills, 1000)}
+        />
+        <ProgressBar
+          label="Headshots"
+          value={totalStats.totalHeadshots}
+          max={totalStats.totalKills}
+          color="green"
+        />
+        <div className="flex justify-between text-xs text-amber-300">
+          <span>Headshot Ratio</span>
+          <span>{totalStats.headshotRatio}</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                      <div className="mt-6 pt-6 border-t border-amber-800/40">
-                        <h3 className="text-amber-400 font-semibold mb-4">Économie & Collecte</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <Stat 
-                            label="Objets ramassés" 
-                            value={playerInfo.pickupCount} 
-                            icon="🎁" 
-                          />
-                          <Stat 
-                            label="Dracs cumulés" 
-                            value={playerInfo.income} 
-                            icon="💰" 
-                          />
-                        </div>
-                      </div>
-                    </Card>
+  <div className="mt-6 pt-6 border-t border-amber-800/40">
+    <h3 className="text-amber-400 font-semibold mb-4">Économie & Collecte</h3>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Stat 
+        label="Objets ramassés" 
+        value={playerInfo.pickupCount} 
+        icon="🎁" 
+      />
+      <Stat 
+        label="Dracs cumulés" 
+        value={playerInfo.income} 
+        icon="💰" 
+      />
+    </div>
+  </div>
+</Card>
 
                     {favoriteEquipment && (
                       <Card id="favorite-equipment" title="⭐ Favorite Equipment">
