@@ -18,6 +18,12 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Audio pour la musique de fond -->
+    <audio id="backgroundMusic" loop>
+        <source src="https://github.com/generalshark/app-soulframe-v1/blob/main/public/TeaserSiteBackGroundLoop.mp3?raw=true" type="audio/mpeg">
+    </audio>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap');
  
@@ -31,6 +37,39 @@
         background-repeat: no-repeat;
         margin: 0;
         min-height: 100vh;
+    }
+    
+    /* Contrôle de musique */
+    .music-control {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        background: rgba(139, 69, 19, 0.8);
+        border: 1px solid rgba(245, 158, 11, 0.5);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+    
+    .music-control:hover {
+        background: rgba(180, 83, 9, 0.9);
+        transform: scale(1.1);
+    }
+    
+    .music-control.muted {
+        background: rgba(120, 53, 15, 0.6);
+    }
+    
+    .music-icon {
+        font-size: 24px;
+        color: #fbbf24;
     }
     
     /* === SOLUTION CSS GLOBALE POUR LES TOOLTIPS === */
@@ -110,7 +149,66 @@ td, th {
 </head>
 <body>
     <div id="root"></div>
+    
+    <!-- Contrôle de musique -->
+    <div class="music-control" id="musicControl" title="Musique de fond">
+        <span class="music-icon">🎵</span>
+    </div>
+
     <script type="text/babel">
+        // Gestion de la musique de fond
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const musicControl = document.getElementById('musicControl');
+        let isMusicPlaying = false;
+
+        // Fonction pour démarrer la musique
+        const startBackgroundMusic = () => {
+            if (backgroundMusic) {
+                backgroundMusic.volume = 0.3; // Volume à 30%
+                backgroundMusic.play().then(() => {
+                    isMusicPlaying = true;
+                    musicControl.classList.remove('muted');
+                }).catch(error => {
+                    console.log('Lecture automatique bloquée:', error);
+                    // L'utilisateur devra cliquer pour démarrer la musique
+                });
+            }
+        };
+
+        // Fonction pour basculer la musique
+        const toggleMusic = () => {
+            if (backgroundMusic) {
+                if (isMusicPlaying) {
+                    backgroundMusic.pause();
+                    musicControl.classList.add('muted');
+                } else {
+                    backgroundMusic.play();
+                    musicControl.classList.remove('muted');
+                }
+                isMusicPlaying = !isMusicPlaying;
+            }
+        };
+
+        // Événement de clic sur le contrôle de musique
+        musicControl.addEventListener('click', toggleMusic);
+
+        // Tentative de démarrage automatique (peut être bloquée par les navigateurs)
+        window.addEventListener('load', () => {
+            setTimeout(startBackgroundMusic, 1000);
+        });
+
+        // Redémarrage automatique en cas de fin (sécurité)
+        backgroundMusic.addEventListener('ended', () => {
+            backgroundMusic.currentTime = 0;
+            backgroundMusic.play();
+        });
+
+        // Gestion des erreurs audio
+        backgroundMusic.addEventListener('error', (e) => {
+            console.error('Erreur audio:', e);
+            musicControl.style.display = 'none'; // Cache le contrôle si la musique ne charge pas
+        });
+
         const { useState, useEffect, useMemo, useRef } = React;
 
         const Card = ({ id, title, children, className = "", defaultExpanded = true }) => {
@@ -145,6 +243,8 @@ td, th {
     </section>
   );
 };
+
+        // ... (le reste de votre code React reste inchangé)
         const Stat = ({ label, value, icon }) => (
           <div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 min-w-[160px] shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
             <div className="flex items-center gap-2 mb-1">
