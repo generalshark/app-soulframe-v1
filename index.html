@@ -869,10 +869,11 @@ const getWeaponDisplayData = (weaponType) => {
                      className="w-full h-full object-contain"
                     />
                    </div>
-                   <h1 className="text-xl font-serif bg-gradient-to-r from-amber-300 to-amber-200 bg-clip-text text-transparent">
-                    Soulframe Tracker
-                   </h1>
-                  </div>
+                   <img 
+                    src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/Soulframe_Tracker_name.png" 
+                    alt="Soulframe Tracker"
+                    className="h-8 object-contain" /* Ajuste la hauteur selon besoin */
+                   />
 
                   <div className="flex flex-wrap gap-2 justify-center">
                     {["player", "favorite-equipment", "subboss", "abilities", "weapons", "enemies"].map((sec) => (
