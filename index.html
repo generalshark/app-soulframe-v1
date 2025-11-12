@@ -853,7 +853,7 @@ const getWeaponDisplayData = (weaponType) => {
           return (
            <div className="min-h-screen text-amber-100 font-[Cormorant_Garamond]">
               <nav className="sticky top-0 z-50 backdrop-blur-md bg-[#12120f]/90 border-b border-amber-900/40 shadow-2xl shadow-amber-900/10">
-                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between px-4 py-3 gap-3">
+                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between px-4 py-4 gap-3">
                   <div className="flex items-center gap-3">
                    <div className="w-10 h-10 flex items-center justify-center rounded-lg overflow-hidden">
                     <img 
@@ -862,6 +862,10 @@ const getWeaponDisplayData = (weaponType) => {
                      className="w-full h-full object-contain"
                     />
                    </div>
+                   <h1 className="text-xl font-serif bg-gradient-to-r from-amber-300 to-amber-200 bg-clip-text text-transparent">
+                    Soulframe Tracker
+                   </h1>
+                  </div>
 
                   <div className="flex flex-wrap gap-2 justify-center">
                     {["player", "favorite-equipment", "subboss", "abilities", "weapons", "enemies"].map((sec) => (
