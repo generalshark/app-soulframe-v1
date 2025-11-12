@@ -1079,12 +1079,30 @@
 
                         {/* État initial - Aucune donnée chargée */}
                         {!payload && !error && (
-                            <div className="text-center py-16 text-amber-300/70">
-                                <div className="text-6xl mb-4">⚔️</div>
-                                <h2 className="text-2xl font-serif mb-2">Soulframe Data Tracker</h2>
-                                <p className="text-amber-400/60">Entrez un AccountId pour commencer</p>
-                            </div>
-                        )}
+  <div className="text-center py-16 text-amber-300/70">
+    {/* Logo à la place du ⚔️ */}
+    <div className="flex justify-center mb-6">
+      <div className="w-24 h-24 flex items-center justify-center rounded-lg overflow-hidden">
+        <img 
+          src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/logo%20V1%20.png" 
+          alt="Soulframe Tracker Logo"
+          className="w-full h-full object-contain"
+        />
+      </div>
+    </div>
+    
+    {/* Nom Soulframe Tracker à la place du texte */}
+    <div className="flex justify-center mb-4">
+      <img 
+        src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/Soulframe_Tracker_name.png" 
+        alt="Soulframe Tracker"
+        className="h-16 object-contain"
+      />
+    </div>
+    
+    <p className="text-amber-400/60 text-lg">Entrez un AccountId pour commencer</p>
+  </div>
+)}
 
                         {/* Affichage des données lorsque disponibles */}
                         {playerInfo && (
