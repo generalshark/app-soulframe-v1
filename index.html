@@ -163,18 +163,17 @@ td, th {
 
         // Fonction pour démarrer la musique
         const startBackgroundMusic = () => {
-            if (backgroundMusic) {
-                backgroundMusic.volume = 0.3; // Volume à 30%
-                backgroundMusic.play().then(() => {
-                    isMusicPlaying = true;
-                    musicControl.classList.remove('muted');
-                }).catch(error => {
-                    console.log('Lecture automatique bloquée:', error);
-                    // L'utilisateur devra cliquer pour démarrer la musique
-                });
-            }
-        };
-
+  if (backgroundMusic && !musicStarted) {
+    backgroundMusic.volume = 0.3;
+    backgroundMusic.play().then(() => {
+      isMusicPlaying = true;
+      musicStarted = true;
+      musicControl.classList.remove('muted');
+    }).catch(error => {
+      console.log('Musique nécessite interaction:', error);
+    });
+  }
+};
         // Fonction pour basculer la musique
         const toggleMusic = () => {
             if (backgroundMusic) {
@@ -601,27 +600,34 @@ const ENEMY_COMPENDIUM = {
   }, [accountId]);
 
   async function fetchViaId(idOverride) {
-            const id = idOverride || accountId;
-            if (!id) return setError("Veuillez entrer un AccountId valide.");
-            try {
-              setIsUpdating(true);
-              setError("");
-              const url = `${PROXY}${encodeURIComponent(SOULFRAME_API + id)}`;
-              const res = await fetch(url);
-              if (!res.ok) throw new Error(`HTTP ${res.status}`);
-              const json = await res.json();
-              if (json?.error) throw new Error(json.error);
-              setPayload(json);
-              setUpdateMessage("✅ Données mises à jour avec succès");
-              setTimeout(() => setUpdateMessage(""), 3000);
-            } catch (e) {
-              setError(e?.message || String(e));
-              setUpdateMessage("❌ Échec de la mise à jour");
-              setTimeout(() => setUpdateMessage(""), 3000);
-            } finally {
-              setIsUpdating(false);
-            }
-          }
+  const id = idOverride || accountId;
+  if (!id) return setError("Veuillez entrer un AccountId valide.");
+  
+  try {
+    setIsUpdating(true);
+    setError("");
+    const url = `${PROXY}${encodeURIComponent(SOULFRAME_API + id)}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    if (json?.error) throw new Error(json.error);
+    setPayload(json);
+    setUpdateMessage("✅ Données mises à jour avec succès");
+    setTimeout(() => setUpdateMessage(""), 3000);
+    
+    // ✅ DÉCLENCHE LA MUSIQUE APRÈS UN FETCH RÉUSSI
+    if (backgroundMusic && !musicStarted) {
+      startBackgroundMusic();
+    }
+    
+  } catch (e) {
+    setError(e?.message || String(e));
+    setUpdateMessage("❌ Échec de la mise à jour");
+    setTimeout(() => setUpdateMessage(""), 3000);
+  } finally {
+    setIsUpdating(false);
+  }
+}
 
           const r0 = payload?.Results?.[0];
           const stats = payload?.Stats || {};
