@@ -1,12 +1,14 @@
 <!--
+-------------------------------------------------------
 Soulframe Tracker — Single-file-V.1.0 
 Author: Gs_DontFall  
-
 Date: 2025-11-13 | Version: 0.1.0
-
-Credits:
-  - Texts/Lore: Avakot.org
-  - Game assets & trademarks © Digital Extremes Ltd. (fan-made project, not affiliated)
+---------------------Credits:--------------------------
+- Puxtril: all Metadata, Warframe-Exporter, and his time.
+- Texts/Lore: Avakot.org
+- Image references (weapons&Pacts, factions, enemies): Avakot.org
+- Game assets & trademarks © Digital Extremes Ltd.
+----------Fan-made project, not affiliated.------------
 -->
 
 <!DOCTYPE html>
@@ -57,28 +59,23 @@ Credits:
     /* === Bouton musique (image seule, sans cercle ni fond) === */
     .music-control {
       position: fixed; bottom: 20px; right: 20px; z-index: 1000;
-      /* pas de fond ni bordure -> je garde juste l'image cliquable */
       background: transparent !important;
       border: none !important; border-radius: 0 !important;
       box-shadow: none !important; backdrop-filter: none !important;
-
       width: auto; height: auto; padding: 0;
       display: inline-flex; align-items: center; justify-content: center;
       cursor: pointer;
     }
-    /* Image de la note (un peu plus grande) */
     .music-icon-img {
-      width: 100px; /* si besoin: ajuste entre 64–120px */
+      width: 100px;
       height: 100px;
       object-fit: contain;
-      pointer-events: none; /* évite de bloquer le clic */
+      pointer-events: none;
       transition: transform .35s ease, filter .3s ease, opacity .3s ease;
-      filter: none; /* pas de glow/ombre -> zéro “cercle” */
+      filter: none;
       opacity: 1;
     }
-    /* Hover = zoom smooth uniquement sur l’image */
     .music-control:hover .music-icon-img { transform: scale(1.12); }
-    /* État mute = léger “off” visuel */
     .music-control.muted .music-icon-img { filter: grayscale(35%) brightness(0.9) opacity(0.85); }
 
     /* === Tooltips : je force au-dessus de tout pour éviter le clipping === */
@@ -102,7 +99,7 @@ Credits:
     .bg-faction-fey      { background: linear-gradient(to right, hsl(146,32%,47%), hsl(146,32%,37%)) !important; }
     .bg-faction-silentRose{ background: linear-gradient(to right, hsl(217,50%,58%), hsl(217,50%,48%)) !important; }
 
-    /* === Lore rotatif (20s) — pause au hover === */
+    /* === Lore rotatif (20s) === */
     @keyframes fadeSwap{
       0%{opacity:0; transform:translateY(6px)}
       12%{opacity:1; transform:translateY(0)}
@@ -124,20 +121,23 @@ Credits:
     }
     .animate-fade-in-out{ animation: fadeInOut 2.8s ease-in-out; }
 
-    /* === Pile de vues (footer toujours en bas grâce au layout flex) === */
+    /* === Pile de vues === */
     .page-stack{ position: relative; min-height: 60vh; }
     .view{ position: static; opacity: 1; transform: none; pointer-events: auto; }
     .view.hidden{ display: none; }
 
-    /* === Voile de transition (PA -> PS) — simple, sans halo doré === */
+    /* === Voile de transition (PA -> PS) === */
     .transition-veil{
       position: fixed; inset: 0; z-index: 9999;
       pointer-events: none; display: grid; place-items: center;
-      background: rgba(41,28,17,1);           /* fond brun uni, pas de gradient doré */
-      animation: veilFade 2600ms ease forwards; /* opacité uniquement */
+      background: rgba(41,28,17,1);
+      animation: veilFade 2600ms ease forwards;
       will-change: opacity, transform; backface-visibility: hidden; transform: translateZ(0);
     }
-    .transition-veil::after{ content: none !important; } /* je désactive tout “second plan” */
+
+    .helper-tooltip {
+     z-index: 999999 !important;
+    .transition-veil::after{ content: none !important; }
 
     .transition-logo{
       width: clamp(120px, 18vw, 220px);
@@ -187,7 +187,6 @@ Credits:
   <script type="text/babel">
     /* =========================================================
        Gestion musique (autoplay protégé + mute/unmute)
-       — Je démarre à faible volume après interaction/timeout
        ========================================================= */
     const backgroundMusic = document.getElementById('backgroundMusic');
     const musicControl = document.getElementById('musicControl');
@@ -228,7 +227,7 @@ Credits:
     const { useState, useEffect, useMemo, useRef } = React;
 
     /* =========================================================
-       Card — section repliable (je garde ça simple et robuste)
+       Card — section repliable
        ========================================================= */
     const Card = ({ id, title, children, className = "", defaultExpanded = true }) => {
       const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -255,7 +254,7 @@ Credits:
     };
 
     /* =========================================================
-       Stat — petite carte de valeur (icône ou image possible)
+       Stat — petite carte de valeur
        ========================================================= */
     const Stat = ({ label, value, icon }) => (
       <div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 min-w-[160px] shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
@@ -271,7 +270,7 @@ Credits:
     );
 
     /* =========================================================
-       ProgressBar — avec thèmes (amber/green + factions)
+       ProgressBar
        ========================================================= */
     const ProgressBar = ({ value, max, label, color = "amber" }) => {
       const percentage = max ? (value / max) * 100 : 0;
@@ -531,18 +530,16 @@ Credits:
 
           // Transition (doit matcher le CSS)
           setIsTransitioning(true);
-          const D_VEIL   = 2600; // durée de .transition-veil
-          const T_SWITCH = 1850; // switch PS pendant opacité pleine
-          const T_END    = D_VEIL + 80; // petite marge
+          const D_VEIL   = 2600;
+          const T_SWITCH = 1850;
+          const T_END    = D_VEIL + 80;
 
-          // Pose payload + switch vue AVANT fin du voile
           setTimeout(() => {
             setPayload(json);
             setView("PS");
             if (backgroundMusic && !musicStarted) startBackgroundMusic();
           }, T_SWITCH);
 
-          // coupe le voile en fin d’anim
           setTimeout(() => {
             setIsTransitioning(false);
           }, T_END);
@@ -661,7 +658,7 @@ Credits:
       const groupedWeapons = useMemo(() => {
         const groups = { main: {}, secondary: {}, unknown: [] };
         weapons.forEach(w => {
-          const category = getWeaponCategory(w.type); // main | secondary | unknown
+          const category = getWeaponCategory(w.type);
           const group = getWeaponGroup(w.type);
           if (category === "unknown") {
             groups.unknown.push(w);
@@ -704,24 +701,22 @@ Credits:
       const favoriteEquipment = useMemo(() => {
         if (!payload) return null;
 
-        // Pacte favori
         const pactUsage = {};
         Object.entries(groupedAbilities).forEach(([pact, arr]) => {
           pactUsage[pact] = arr.reduce((s, ab) => s + (ab.used || 0), 0);
         });
         const favoritePact = Object.entries(pactUsage).reduce((m, [p, u]) => (u > (m.usage || 0) ? { pact: p, usage: u } : m), {});
 
-        // Armes favorites (temps équipé)
         const favMain = Object.values(groupedWeapons.main).flat().reduce((m, w) => {
           const t = w.equipTime || 0;
           return t > (m.equipTime || 0) ? { name: getWeaponDisplayData(w.type).name, equipTime: t } : m;
         }, {});
+
         const favSec = Object.values(groupedWeapons.secondary).flat().reduce((m, w) => {
           const t = w.equipTime || 0;
           return t > (m.equipTime || 0) ? { name: getWeaponDisplayData(w.type).name, equipTime: t } : m;
         }, {});
 
-        // SubBoss favori
         const favSB = (groupedEnemies.SUBBOSS?.enemies || []).reduce((m, e) => {
           const k = e.kills || 0;
           return k > (m.kills || 0) ? { name: getSubBossDisplayName(e.type), kills: k } : m;
@@ -731,7 +726,10 @@ Credits:
       }, [payload, groupedAbilities, groupedWeapons, groupedEnemies]);
 
       /* --- Helpers formatage --- */
-      const formatXP = (xp) => xp >= 1e6 ? (xp/1e6).toFixed(1)+'M' : xp >= 1e3 ? (xp/1e3).toFixed(1)+'K' : (xp||0).toLocaleString();
+      const formatXP = (xp) =>
+        xp >= 1e6 ? (xp/1e6).toFixed(1)+'M' :
+        xp >= 1e3 ? (xp/1e3).toFixed(1)+'K' :
+        (xp||0).toLocaleString();
 
       /* ===========================
          Rendu
@@ -742,9 +740,8 @@ Credits:
           {payload && (
             <nav className="sticky top-0 z-50 backdrop-blur-md bg-[#12120f]/90 border-b border-amber-900/40 shadow-2xl shadow-amber-900/10" aria-label="Navigation des sections">
               <div className="max-w-7xl mx-auto px-4 py-4">
-                {/* Grille 3 colonnes : [logo+titre] [nav centrée] [miroir] */}
                 <div className="grid grid-cols-[auto,1fr,auto] items-center gap-4">
-                  {/* Col 1 : Logo + Titre (j’aligne sur les assets “big” pour une meilleure netteté) */}
+                  {/* Logo + Titre */}
                   <div className="flex items-center gap-3">
                     <div className="w-[72px] h-[72px] flex items-center justify-center rounded-lg overflow-hidden">
                       <img
@@ -760,7 +757,7 @@ Credits:
                     />
                   </div>
 
-                  {/* Col 2 : Navigation centrée */}
+                  {/* Navigation centrée */}
                   <div className="justify-self-center">
                     <div className="flex flex-wrap gap-2 justify-center">
                       {["player", "favorite-equipment", "subboss", "abilities", "weapons", "enemies"].map((sec) => (
@@ -775,7 +772,7 @@ Credits:
                     </div>
                   </div>
 
-                  {/* Col 3 : Miroir (équilibre visuel) */}
+                  {/* Miroir visuel */}
                   <div className="flex items-center gap-3 opacity-0 pointer-events-none select-none" aria-hidden="true">
                     <div className="w-[72px] h-[72px] rounded-lg overflow-hidden">
                       <img
@@ -802,146 +799,363 @@ Credits:
             </div>
           )}
 
-          {/* ===== Contenu principal : PA / PS ===== */}
-          <main className="flex-1 max-w-7xl mx-auto px-4 py-8">
-            {/* Décalage pour les ancres sous header sticky */}
-            <div className="h-2 sm:h-0" />
+                {/* ===== Contenu principal : PA / PS ===== */}
+      <main className="flex-1 max-w-7xl mx-auto px-4 py-8">
+        <div className="h-2 sm:h-0" />
 
-            <div className="page-stack">
-              {/* Erreur API */}
-              {error && (
-                <div className="mb-6 p-4 bg-red-900/20 border border-red-700/40 rounded-xl text-red-200 text-sm">❌ Erreur: {error}</div>
-              )}
+        <div className="page-stack">
+          {/* Erreur API */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-900/20 border border-red-700/40 rounded-xl text-red-200 text-sm">
+              ❌ Erreur: {error}
+            </div>
+          )}
 
-              {/* PA (accueil) */}
-              <div className={`view ${payload ? 'hidden' : ''}`} id="PA" aria-hidden={!!payload}>
-                {!payload && !error && (
-                  <div className="text-center py-16 text-amber-300/70">
-                    <div className="flex justify-center mb-5">
-                      <div className="w-[352px] h-[352px] flex items-center justify-center rounded-lg overflow-hidden">
-                        <img src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/logoV1big.png" alt="Soulframe Tracker Logo" className="w-full h-full object-contain" />
+          {/* PA (accueil) */}
+          <div
+            className={`view ${view === "PA" ? "" : "hidden"}`}
+            id="PA"
+            aria-hidden={view !== "PA"}
+          >
+            {!payload && !error && (
+              <div className="text-center py-16 text-amber-300/70">
+                {/* Logo principal */}
+                <div className="flex justify-center mb-5">
+                  <div className="w-[352px] h-[352px] flex items-center justify-center rounded-lg overflow-hidden">
+                    <img
+                      src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/logoV1big.png"
+                      alt="Soulframe Tracker Logo"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                </div>
+
+                {/* Logo texte */}
+                <div className="flex justify-center mb-8 mt-[-90px]">
+                  <img
+                    src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/Soulframe_Tracker_name.png"
+                    alt="Soulframe Tracker"
+                    className="w-[252px] h-[252px] object-contain"
+                  />
+                </div>
+
+                {/* Zone de saisie AccountId + helper "?" à droite */}
+                <div className="flex justify-center mb-8">
+                  <div className="w-full max-w-2xl flex items-stretch gap-3">
+                    {/* Barre AccountID + bouton Enter */}
+                    <div className="flex-1">
+                      <div className="rounded-xl border border-amber-700/40 bg-[#13120F]/90 shadow-2xl shadow-amber-900/10 overflow-hidden">
+                        <div className="grid grid-cols-[1fr_auto] items-stretch">
+                          {/* Champ AccountId seul */}
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={accountId}
+                              onChange={(e) => setAccountId(e.target.value)}
+                              placeholder="AccountId …"
+                              className="w-full h-14 pl-5 pr-5 bg-transparent outline-none text-amber-200 placeholder-amber-400/30"
+                              onKeyDown={(e) => e.key === "Enter" && fetchViaId()}
+                              aria-label="Saisir votre AccountId Soulframe"
+                            />
+                          </div>
+
+                          {/* Bouton Enter */}
+                          <button
+                            onClick={() => fetchViaId()}
+                            disabled={isUpdating}
+                            className="h-14 px-8 font-semibold tracking-wide bg-[#12110E] hover:bg-[#12110E] text-amber-200 hover:text-amber-400 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Entrer"
+                          >
+                            {isUpdating ? "Loading…" : "Enter"}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex justify-center mb-8 mt-[-90px]">
-                      <img src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/Soulframe_Tracker_name.png" alt="Soulframe Tracker" className="w-[252px] h-[252px] object-contain" />
-                    </div>
 
-                    {/* Zone de saisie AccountId */}
-                    <div className="flex justify-center mb-8">
-                      <div className="w-full max-w-2xl">
-                        <div className="rounded-xl border border-amber-700/40 bg-[#13120F]/90 shadow-2xl shadow-amber-900/10 overflow-hidden">
-                          <div className="grid grid-cols-[1fr_auto] items-stretch">
-                            <div className="relative">
-                              <input
-                                type="text"
-                                value={accountId}
-                                onChange={(e) => setAccountId(e.target.value)}
-                                placeholder="AccountId …"
-                                className="w-full h-14 pl-5 pr-5 bg-transparent outline-none text-amber-200 placeholder-amber-400/30"
-                                onKeyDown={(e) => e.key === "Enter" && fetchViaId()}
-                                aria-label="Saisir votre AccountId Soulframe"
-                              />
-                              <span className="pointer-events-none absolute right-0 top-7 h-9 w-px bg-amber-700/50" />
-                            </div>
-                            <button
-                              onClick={() => fetchViaId()}
-                              disabled={isUpdating}
-                              className="h-14 px-8 font-semibold tracking-wide bg-[#12110E] hover:bg-[#12110E] text-amber-200 hover:text-amber-400 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Entrer"
-                            >
-                              {isUpdating ? "Loading…" : "Enter"}
-                            </button>
+                    {/* Petit "?" à droite, en dehors de la barre */}
+                    <div className="flex items-center">
+                      <div className="relative group">
+                        <button
+                          type="button"
+                          className="w-7 h-7 flex items-center justify-center rounded-full border border-amber-700/60 text-amber-300/80 text-sm bg-amber-900/40 hover:bg-amber-800/70 hover:text-amber-100 transition-colors shadow-md"
+                          aria-label="Comment trouver votre Account ID Soulframe ?"
+                        >
+                          ?
+                        </button>
+
+                        {/* Infobulle helper */}
+                        <div className="absolute left-1/2 top-full mt-2 w-80 -translate-x-1/2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 helper-tooltip">
+                          <div className="bg-[#11100d]/95 border border-amber-700/60 rounded-xl p-3 text-xs text-left text-amber-100 shadow-2xl shadow-amber-900/40">
+                            <p className="font-semibold text-amber-300 mb-1">
+                              🔍 Comment trouver votre Account ID Soulframe ?
+                            </p>
+
+                            <p className="mb-1">
+                              📋{" "}
+                              <span className="font-semibold">
+                                Méthode recommandée :
+                              </span>
+                            </p>
+
+                            <ul className="list-disc list-inside space-y-0.5 mb-2 text-amber-100/90">
+                              <li>Ouvrez le launcher Soulframe</li>
+                              <li>
+                                Allez dans{" "}
+                                <span className="font-semibold">
+                                  Paramètres ⚙️
+                                </span>
+                              </li>
+                              <li>
+                                Cliquez sur{" "}
+                                <span className="font-semibold">
+                                  « Diagnostique [Fichiers Logs] »
+                                </span>
+                              </li>
+                              <li>
+                                Un dossier sera créé sur votre Bureau
+                              </li>
+                              <li>
+                                Ouvrez le fichier{" "}
+                                <span className="font-semibold">EE.log</span> dans
+                                ce dossier
+                              </li>
+                              <li>
+                                Appuyez sur{" "}
+                                <span className="font-semibold">Ctrl + F</span>{" "}
+                                et cherchez :{" "}
+                                <span className="font-mono text-amber-200">
+                                  "Sys [Info]: Logged in"
+                                </span>
+                              </li>
+                              <li>
+                                Vous verrez votre pseudo et votre Account ID (24
+                                caractères) entre parenthèses
+                              </li>
+                            </ul>
+
+                            <p className="mb-1">
+                              🔄{" "}
+                              <span className="font-semibold">
+                                Si la recherche ne donne rien :
+                              </span>
+                            </p>
+
+                            <ul className="list-disc list-inside space-y-0.5 mb-2 text-amber-100/90">
+                              <li>Lancez le jeu normalement</li>
+                              <li>Connectez-vous et jouez 1 à 2 minutes</li>
+                              <li>Fermez le jeu normalement</li>
+                              <li>
+                                Refaites un « Diagnostique [Fichiers Logs] »
+                              </li>
+                              <li>
+                                Rouvrez le nouveau{" "}
+                                <span className="font-semibold">EE.log</span> et
+                                recommencez la recherche
+                              </li>
+                            </ul>
+
+                            <p className="mt-1 text-amber-300/90">
+                              ⚠️ Important :{" "}
+                              <span className="font-normal text-amber-200/90">
+                                Votre Account ID est personnel – ne le partagez
+                                qu’avec des sources de confiance.
+                              </span>
+                            </p>
                           </div>
                         </div>
                       </div>
                     </div>
-
-                    {/* Lore panneau */}
-                    <div className="max-w-3xl mx-auto px-6">
-                      <div className="bg-[#0f0f0e]/70 border border-amber-800/40 rounded-xl p-6 shadow-amber-900/10 shadow-2xl lore-panel">
-                        <p key={loreIdx} className="lore-anim text-amber-200/90 text-lg sm:text-xl leading-relaxed tracking-wide break-words">
-                          {loreLines.length ? loreLines[loreIdx] : "…"}
-                        </p>
-                      </div>
-                      <div className="mt-3 text-xs text-amber-400/60">
-                        <span>Credit: Avakot.org</span>
-                      </div>
-                    </div>
                   </div>
-                )}
+                </div>
+
+                {/* Lore panneau */}
+                <div className="max-w-3xl mx-auto px-6">
+                  <div className="bg-[#0f0f0e]/70 border border-amber-800/40 rounded-xl p-6 shadow-amber-900/10 shadow-2xl lore-panel">
+                    <p
+                      key={loreIdx}
+                      className="lore-anim text-amber-200/90 text-lg sm:text-xl leading-relaxed tracking-wide break-words"
+                    >
+                      {loreLines.length ? loreLines[loreIdx] : "…"}
+                    </p>
+                  </div>
+                  <div className="mt-3 text-xs text-amber-400/60">
+                    <span>Credit: Avakot.org</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* PS (stats) */}
+          <div
+            className={`view ${view === "PS" ? "" : "hidden"}`}
+            id="PS"
+            aria-hidden={view !== "PS"}
+          >
+            {/* Player Information */}
+            <Card id="player" title="Player Information">
+              {/* === ORB MR + PLAYER NAME === */}
+              <div className="flex items-center gap-3 mb-10">
+                <div
+                  className="relative flex items-center justify-center"
+                  style={{ width: "200px", height: "200px" }}
+                >
+                  <img
+                    src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/Sphere_MR%20.png"
+                    alt="Mastery Orb"
+                    className="absolute inset-0 w-full h-full object-contain drop-shadow-[0_0_15px_rgba(212,175,55,0.15)]"
+                  />
+                  <span className="relative z-10 text-6xl font-bold text-amber-200 drop-shadow-[0_0_8px_rgba(212,175,55,0.35)] select-none">
+                    {playerInfo?.mastery ?? "—"}
+                  </span>
+                </div>
+
+                <div className="flex flex-col justify-center">
+                  <span className="text-4xl font-serif font-bold text-amber-100 tracking-wide drop-shadow-[0_0_6px_rgba(212,175,55,0.25)]">
+                    {playerInfo?.name ?? "—"}
+                  </span>
+                </div>
               </div>
 
-              {/* PS (stats) */}
-              <div className={`view ${payload ? '' : 'hidden'}`} id="PS" aria-hidden={!payload}>
-                {/* Player Information */}
-                <Card id="player" title="Player Information">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <Stat label="Player Name" value={playerInfo?.name} icon="👤" />
-                    <Stat label="Mastery Rank" value={playerInfo?.mastery} icon="⭐" />
-                    <Stat label="Time Played" value={playerInfo?.timePlayedH} icon="⏱️" />
-                    <Stat label="Account Created" value={playerInfo?.created} icon="📅" />
-                  </div>
+              {/* === STATS PRINCIPALES === */}
+              {/* ... (le reste de ta section Player Information reste inchangé) */}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Factions */}
-                    <div className="space-y-3">
-                      <h3 className="text-amber-400 font-semibold">Factions Progress</h3>
-                      <div className="space-y-2">
-                        <ProgressBar
-                          label={
-                            <div className="flex items-center gap-2 whitespace-nowrap">
-                              <img src="https://static.wikitide.net/soulframewiki/thumb/1/1a/ChampionFaction.png/165px-ChampionFaction.png" alt="Kith of King" className="w-4 h-4 object-contain rounded-sm flex-shrink-0" />
-                              <span className="truncate">Kith of King</span>
-                            </div>
-                          }
-                          value={playerInfo?.championStanding ?? 0}
-                          max={30000}
-                          color="champion"
-                        />
-                        <ProgressBar
-                          label={
-                            <div className="flex items-center gap-2 whitespace-nowrap">
-                              <img src="https://static.wikitide.net/soulframewiki/thumb/9/92/AlcasChildrenFactionIcon.png/165px-AlcasChildrenFactionIcon.png" alt="Alca Children" className="w-4 h-4 object-contain rounded-sm flex-shrink-0" />
-                              <span className="truncate">Alca Children</span>
-                            </div>
-                          }
-                          value={playerInfo?.feyStanding ?? 0}
-                          max={30000}
-                          color="fey"
-                        />
-                        <ProgressBar
-                          label={
-                            <div className="flex items-center gap-2 whitespace-nowrap">
-                              <img src="https://static.wikitide.net/soulframewiki/c/c1/Map-SilentRoseIcon.png" alt="The Silent Rose" className="w-4 h-4 object-contain rounded-sm flex-shrink-0" />
-                              <span className="truncate">The Silent Rose</span>
-                            </div>
-                          }
-                          value={playerInfo?.silentRoseStanding ?? 0}
-                          max={30000}
-                          color="silentRose"
-                        />
+                    {/* Time Played */}
+                    <div className="flex items-center gap-4 p-5 rounded-2xl bg-[#0a0a09]/70 backdrop-blur-sm 
+                                    shadow-[0_0_20px_rgba(212,175,55,0.1)] border border-amber-900/20">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+                        className="text-amber-300 drop-shadow-[0_0_5px_rgba(212,175,55,0.25)]">
+                        <circle cx="12" cy="12" r="9" stroke="#CDAF55" strokeWidth="1.8"/>
+                        <path d="M12 7v5l3 2" stroke="#E5D7A2" strokeWidth="1.6" strokeLinecap="round"/>
+                      </svg>
+                      <div>
+                        <span className="text-amber-300/80 text-sm uppercase">Time Played</span>
+                        <div className="text-2xl font-bold text-amber-100">
+                          {playerInfo?.timePlayedH ?? "—"}
+                        </div>
                       </div>
                     </div>
 
-                    {/* Combat */}
-                    <div className="space-y-3">
-                      <h3 className="text-amber-400 font-semibold">Combat Stats</h3>
-                      <div className="space-y-2">
-                        <ProgressBar label={<span className="whitespace-nowrap">Total Kills</span>} value={totalStats.totalKills} max={Math.max(totalStats.totalKills, 1000)} color="amber" />
-                        <ProgressBar label={<span className="whitespace-nowrap">Headshots</span>} value={totalStats.totalHeadshots} max={totalStats.totalKills || 1} color="fey" />
-                        <div className="flex justify-between text-xs text-amber-300">
-                          <span>Headshot Ratio</span><span>{totalStats.headshotRatio}</span>
+                    {/* Account Created */}
+                    <div className="flex items-center gap-4 p-5 rounded-2xl bg-[#0a0a09]/70 backdrop-blur-sm 
+                                    shadow-[0_0_20px_rgba(212,175,55,0.1)] border border-amber-900/20">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+                        className="text-amber-300 drop-shadow-[0_0_5px_rgba(212,175,55,0.25)]">
+                        <rect x="4" y="5" width="16" height="15" rx="2" stroke="#CDAF55" strokeWidth="1.8"/>
+                        <path d="M4 9h16" stroke="#E5D7A2" strokeWidth="1.4"/>
+                        <path d="M8 3v4M16 3v4" stroke="#E5D7A2" strokeWidth="1.4" strokeLinecap="round"/>
+                      </svg>
+                      <div>
+                        <span className="text-amber-300/80 text-sm uppercase">Account Created</span>
+                        <div className="text-2xl font-bold text-amber-100">
+                          {playerInfo?.created ?? "—"}
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Économie */}
-                  <div className="mt-6 pt-6 border-t border-amber-800/40">
-                    <h3 className="text-amber-400 font-semibold mb-4">Économie & Collecte</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Stat label="Objets ramassés" value={playerInfo?.pickupCount} icon="🎁" />
-                      <Stat label="Dracs cumulés" value={playerInfo?.income} icon="💰" />
+                  {/* === STATS SECONDAIRES === */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    {/* ITEMS COLLECTED (fix: j’utilise bien les stats de l’API) */}
+                    <div className="flex items-center gap-4 p-5 rounded-2xl bg-[#0a0a09]/70 backdrop-blur-sm 
+                                    shadow-[0_0_20px_rgba(212,175,55,0.1)] border border-amber-900/20">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+                        className="text-amber-300 drop-shadow-[0_0_5px_rgba(212,175,55,0.25)]">
+                        <path d="M4 15l8-10 8 10H4z" stroke="#CDAF55" strokeWidth="1.8"/>
+                      </svg>
+                      <div>
+                        <span className="text-amber-300/80 text-sm uppercase">Items Collected</span>
+                        <div className="text-2xl font-bold text-amber-100">
+                          {playerInfo?.pickupCount ?? "—"}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* TOTAL DRACS (fix: même chose) */}
+                    <div className="flex items-center gap-4 p-5 rounded-2xl bg-[#0a0a09]/70 backdrop-blur-sm 
+                                    shadow-[0_0_20px_rgba(212,175,55,0.1)] border border-amber-900/20">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+                        className="text-amber-300 drop-shadow-[0_0_5px_rgba(212,175,55,0.25)]">
+                        <circle cx="12" cy="12" r="9" stroke="#CDAF55" strokeWidth="1.8"/>
+                        <path d="M8 12h8" stroke="#E5D7A2" strokeWidth="1.6" strokeLinecap="round"/>
+                      </svg>
+                      <div>
+                        <span className="text-amber-300/80 text-sm uppercase">Total Dracs</span>
+                        <div className="text-2xl font-bold text-amber-100">
+                          {playerInfo?.income ?? "—"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* === FACTIONS === */}
+                  <div className="mt-12 pt-6 border-t border-amber-900/30">
+                    <h3 className="text-amber-300 text-lg font-semibold mb-5">Factions Progress</h3>
+
+                    <div className="space-y-7">
+                      {/* Champion */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-amber-200 text-sm flex items-center gap-2">
+                            Kith of King
+                            <span className="w-3 h-3 rounded-full" style={{background:"#a83b3b"}}></span>
+                          </span>
+                          <span className="text-amber-300 text-sm">
+                            {(playerInfo?.championStanding ?? 0).toLocaleString()}
+                          </span>
+                        </div>
+
+                        <div className="h-3 rounded-full bg-amber-900/20 overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-700"
+                            style={{
+                              width: `${Math.min(((playerInfo?.championStanding ?? 0) / 30000) * 100, 100)}%`,
+                              background: "linear-gradient(to right, #E1C172, #C7A053)"
+                            }}></div>
+                        </div>
+                      </div>
+
+                      {/* Fey */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-amber-200 text-sm flex items-center gap-2">
+                            Alca Children
+                            <span className="w-3 h-3 rounded-full" style={{background:"#5e8b5e"}}></span>
+                          </span>
+                          <span className="text-amber-300 text-sm">
+                            {(playerInfo?.feyStanding ?? 0).toLocaleString()}
+                          </span>
+                        </div>
+
+                        <div className="h-3 rounded-full bg-amber-900/20 overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-700"
+                            style={{
+                              width: `${Math.min(((playerInfo?.feyStanding ?? 0) / 30000) * 100, 100)}%`,
+                              background: "linear-gradient(to right, #E1C172, #C7A053)"
+                            }}></div>
+                        </div>
+                      </div>
+
+                      {/* Silent Rose */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-amber-200 text-sm flex items-center gap-2">
+                            The Silent Rose
+                            <span className="w-3 h-3 rounded-full" style={{background:"#4a6b9c"}}></span>
+                          </span>
+                          <span className="text-amber-300 text-sm">
+                            {(playerInfo?.silentRoseStanding ?? 0).toLocaleString()}
+                          </span>
+                        </div>
+
+                        <div className="h-3 rounded-full bg-amber-900/20 overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-700"
+                            style={{
+                              width: `${Math.min(((playerInfo?.silentRoseStanding ?? 0) / 30000) * 100, 100)}%`,
+                              background: "linear-gradient(to right, #E1C172, #C7A053)"
+                            }}></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </Card>
@@ -1336,7 +1550,7 @@ Credits:
               </div>
             </div>
 
-            {/* --- Voile de transition (affiché pendant la bascule PA -> PS) --- */}
+            {/* --- Voile de transition --- */}
             {isTransitioning && (
               <div className="transition-veil" aria-hidden="true">
                 <div className="transition-logo">
