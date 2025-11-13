@@ -41,7 +41,7 @@ Date: 2025-11-13 | Version: 0.1.0
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap');
 
-    /* === Fond + typo (bois sombre + voile léger) === */
+    /* === Fond + typo === */
     body{
       background-image:
         linear-gradient(to bottom right, rgba(13,13,11,.8), rgba(18,18,16,.8), rgba(10,10,8,.8)),
@@ -56,7 +56,7 @@ Date: 2025-11-13 | Version: 0.1.0
       color-scheme: dark;
     }
 
-    /* === Bouton musique (image seule, sans cercle ni fond) === */
+    /* === Bouton musique === */
     .music-control {
       position: fixed; bottom: 20px; right: 20px; z-index: 1000;
       background: transparent !important;
@@ -571,7 +571,7 @@ Date: 2025-11-13 | Version: 0.1.0
         }
       }
 
-      /* --- Lore : je charge le JSON et je cycle tant que pas connecté --- */
+      /* --- Lore : charge le JSON et cycle tant que pas connecté --- */
       useEffect(() => {
   if (payload) return;
   let timer;
@@ -584,7 +584,7 @@ Date: 2025-11-13 | Version: 0.1.0
         listEN = Array.from(new Set(listEN.map(s => (typeof s === "string" ? s.trim() : "")).filter(Boolean)));
       } else listEN = [];
 
-      // FR (même structure, si tu fournis un fichier lore_fr.json)
+      // FR (même structure,fichier lore_fr.json)
       let listFR = [];
       try {
         const resFR = await fetch(LORE_URL.replace("lore.json", "lore_fr.json"));
@@ -899,7 +899,7 @@ Date: 2025-11-13 | Version: 0.1.0
                       </div>
                     </div>
 
-                    {/* Petit "?" à droite, en dehors de la barre */}
+                    {/* "?" à droite */}
 <div className="flex items-center">
   <div
     className="relative"
@@ -1033,8 +1033,7 @@ Date: 2025-11-13 | Version: 0.1.0
               </div>
 
               {/* === STATS PRINCIPALES === */}
-              {/* ... (le reste de ta section Player Information reste inchangé) */}
-
+            
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Time Played */}
                     <div className="flex items-center gap-4 p-5 rounded-2xl bg-[#0a0a09]/70 backdrop-blur-sm 
@@ -1087,7 +1086,7 @@ Date: 2025-11-13 | Version: 0.1.0
                       </div>
                     </div>
 
-                    {/* TOTAL DRACS (fix: même chose) */}
+                    {/* TOTAL DRACS */}
                     <div className="flex items-center gap-4 p-5 rounded-2xl bg-[#0a0a09]/70 backdrop-blur-sm 
                                     shadow-[0_0_20px_rgba(212,175,55,0.1)] border border-amber-900/20">
                       <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
