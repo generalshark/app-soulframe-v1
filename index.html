@@ -1,0 +1,1577 @@
+<!--
+-------------------------------------------------------
+Soulframe Tracker — Single-file-V.1.0 
+Author: Gs_DontFall  
+Date: 2025-11-13 | Version: 0.1.0
+---------------------Credits:--------------------------
+- Puxtril: all Metadata, Warframe-Exporter, and his time.
+- Texts/Lore: Avakot.org
+- Image references (weapons&Pacts, factions, enemies): Avakot.org
+- Game assets & trademarks © Digital Extremes Ltd.
+----------Fan-made project, not affiliated.------------
+-->
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Soulframe Tracker</title>
+
+  <!-- ===== Partage social (OpenGraph / Twitter) ===== -->
+  <meta property="og:title" content="Soulframe Tracker" />
+  <meta property="og:description" content="Suivez vos statistiques Soulframe - Armes, capacités, ennemis et bien plus encore" />
+  <meta property="og:image" content="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/image%20app%20discord.png" />
+  <meta property="og:url" content="https://soulframe-tracker.vercel.app" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Soulframe Tracker" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Soulframe Tracker" />
+  <meta name="twitter:description" content="Suivez vos statistiques Soulframe" />
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/image%20app%20discord.png" />
+
+  <!-- ===== Librairies (CDN pour démo / dev) ===== -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- ===== Styles globaux ===== -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap');
+
+    /* === Fond + typo (bois sombre + voile léger) === */
+    body{
+      background-image:
+        linear-gradient(to bottom right, rgba(13,13,11,.8), rgba(18,18,16,.8), rgba(10,10,8,.8)),
+        url('https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/desktop-wallpaper1.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Cormorant Garamond', serif;
+      color-scheme: dark;
+    }
+
+    /* === Bouton musique (image seule, sans cercle ni fond) === */
+    .music-control {
+      position: fixed; bottom: 20px; right: 20px; z-index: 1000;
+      background: transparent !important;
+      border: none !important; border-radius: 0 !important;
+      box-shadow: none !important; backdrop-filter: none !important;
+      width: auto; height: auto; padding: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .music-icon-img {
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+      pointer-events: none;
+      transition: transform .35s ease, filter .3s ease, opacity .3s ease;
+      filter: none;
+      opacity: 1;
+    }
+    .music-control:hover .music-icon-img { transform: scale(1.12); }
+    .music-control.muted .music-icon-img { filter: grayscale(35%) brightness(0.9) opacity(0.85); }
+
+    /* === Tooltips : je force au-dessus de tout pour éviter le clipping === */
+    .relative.group .absolute, .group .absolute { z-index: 99999 !important; }
+    table, td, th, .bg-gradient-to-br { position: relative; z-index: 1 !important; }
+    .absolute.z-\[9999\] { z-index: 99999 !important; }
+    .group:hover .absolute { z-index: 999999 !important; }
+    #weapons .overflow-auto { overflow: visible !important; }
+    #weapons .group:hover .absolute, #weapons .group .absolute { z-index: 999999 !important; pointer-events: none; }
+
+    /* SubBoss tooltips : mêmes priorités */
+    #subboss .overflow-auto, #subboss table, #subboss td, #subboss th{
+      overflow: visible !important; position: relative !important; z-index: 1 !important;
+    }
+    #subboss .group:hover .absolute, #subboss .group .absolute{
+      z-index: 999999 !important; pointer-events: none;
+    }
+
+    /* === Marqueurs de couleurs (factions) === */
+    .bg-faction-champion { background: linear-gradient(to right, hsl(1,69%,60%), hsl(1,69%,50%)) !important; }
+    .bg-faction-fey      { background: linear-gradient(to right, hsl(146,32%,47%), hsl(146,32%,37%)) !important; }
+    .bg-faction-silentRose{ background: linear-gradient(to right, hsl(217,50%,58%), hsl(217,50%,48%)) !important; }
+
+    /* === Lore rotatif (20s) === */
+    @keyframes fadeSwap{
+      0%{opacity:0; transform:translateY(6px)}
+      12%{opacity:1; transform:translateY(0)}
+      88%{opacity:1; transform:translateY(0)}
+      100%{opacity:0; transform:translateY(-6px)}
+    }
+    .lore-anim{ animation: fadeSwap 20s ease-in-out infinite; }
+    .lore-panel:hover .lore-anim{ animation-play-state: paused; }
+    @media (prefers-reduced-motion: reduce){
+      .lore-anim{ animation-duration:.01ms; animation-iteration-count:1; }
+    }
+
+    /* === Toasts (apparition/disparition) === */
+    @keyframes fadeInOut{
+      0%{opacity:0; transform:translateY(-4px)}
+      10%{opacity:1; transform:translateY(0)}
+      90%{opacity:1; transform:translateY(0)}
+      100%{opacity:0; transform:translateY(-4px)}
+    }
+    .animate-fade-in-out{ animation: fadeInOut 2.8s ease-in-out; }
+
+    /* === Pile de vues === */
+    .page-stack{ position: relative; min-height: 60vh; }
+    .view{ position: static; opacity: 1; transform: none; pointer-events: auto; }
+    .view.hidden{ display: none; }
+
+    /* === Voile de transition (PA -> PS) === */
+    .transition-veil{
+      position: fixed; inset: 0; z-index: 9999;
+      pointer-events: none; display: grid; place-items: center;
+      background: rgba(41,28,17,1);
+      animation: veilFade 2600ms ease forwards;
+      will-change: opacity, transform; backface-visibility: hidden; transform: translateZ(0);
+    }
+
+    .helper-tooltip {
+     z-index: 999999 !important;
+    .transition-veil::after{ content: none !important; }
+
+    .transition-logo{
+      width: clamp(120px, 18vw, 220px);
+      height: clamp(120px, 18vw, 220px);
+      display: grid; place-items: center;
+      background: transparent; overflow: visible; isolation: isolate;
+      transform: scale(.96);
+      animation: logoPop 900ms ease forwards;
+    }
+    .transition-logo img{
+      width: 100%; height: 100%; object-fit: contain;
+      image-rendering: auto; filter: none; background: transparent; mix-blend-mode: normal;
+    }
+    @keyframes veilFade{
+      0%{opacity:0; transform:scale(1)}
+      12%{opacity:1; transform:scale(1)}
+      88%{opacity:1; transform:scale(1)}
+      100%{opacity:0; transform:scale(1)}
+    }
+    @keyframes logoPop{
+      0%{opacity:.85; transform:scale(1.96)}
+      50%{opacity:1; transform:scale(2)}
+      100%{opacity:.95; transform:scale(1.985)}
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ===== Audio de fond (boucle discrète) ===== -->
+  <audio id="backgroundMusic" loop aria-hidden="true">
+    <source src="https://cdn.jsdelivr.net/gh/generalshark/app-soulframe-v1/docs/TeaserSiteBackGroundLoop.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- ===== Racine React ===== -->
+  <div id="root"></div>
+
+  <!-- ===== Bouton musique (image seule) ===== -->
+  <div class="music-control" id="musicControl" title="Musique de fond">
+    <img
+      class="music-icon-img"
+      src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/note_de_music_aura.png"
+      alt="Music"
+    />
+  </div>
+
+  <!-- ===== App (Babel JSX) ===== -->
+  <script type="text/babel">
+    /* =========================================================
+       Gestion musique (autoplay protégé + mute/unmute)
+       ========================================================= */
+    const backgroundMusic = document.getElementById('backgroundMusic');
+    const musicControl = document.getElementById('musicControl');
+    let isMusicPlaying = false;
+    let musicStarted = false;
+
+    const startBackgroundMusic = () => {
+      if (backgroundMusic && !musicStarted) {
+        backgroundMusic.volume = 0.3;
+        backgroundMusic.play().then(() => {
+          isMusicPlaying = true; musicStarted = true;
+          musicControl.classList.remove('muted');
+          musicControl.setAttribute('aria-pressed', 'true');
+        }).catch(() => {/* autoplay bloqué => on attend le clic */});
+      }
+    };
+    const toggleMusic = () => {
+      if (!backgroundMusic) return;
+      if (isMusicPlaying) {
+        backgroundMusic.pause();
+        musicControl.classList.add('muted');
+        musicControl.setAttribute('aria-pressed', 'false');
+      } else {
+        backgroundMusic.play();
+        musicControl.classList.remove('muted');
+        musicControl.setAttribute('aria-pressed', 'true');
+      }
+      isMusicPlaying = !isMusicPlaying;
+    };
+    musicControl.addEventListener('click', toggleMusic);
+    window.addEventListener('load', () => setTimeout(startBackgroundMusic, 1000));
+    backgroundMusic.addEventListener('ended', () => { backgroundMusic.currentTime = 0; backgroundMusic.play(); });
+    backgroundMusic.addEventListener('error', () => { musicControl.style.display = 'none'; });
+
+    /* =========================================================
+       Hooks React (états & mémos)
+       ========================================================= */
+    const { useState, useEffect, useMemo, useRef } = React;
+
+    /* =========================================================
+       Card — section repliable
+       ========================================================= */
+    const Card = ({ id, title, children, className = "", defaultExpanded = true }) => {
+      const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+      const contentRef = useRef(null);
+      return (
+        <section id={id} className="scroll-mt-24">
+          <div className={`bg-gradient-to-br from-[#1b1b18]/90 to-[#0f0f0e]/90 border border-amber-900/40 shadow-2xl shadow-amber-900/10 rounded-2xl p-6 mb-8 backdrop-blur-sm transition-all duration-300 hover:shadow-amber-900/20 hover:border-amber-800/60 ${className}`}>
+            <h2
+              className="text-2xl font-serif text-amber-300 drop-shadow mb-4 border-b border-amber-800/40 pb-2 flex items-center justify-between cursor-pointer hover:bg-amber-900/10 px-2 -mx-2 rounded-lg transition-colors"
+              onClick={() => setIsExpanded(v => !v)}
+            >
+              <span className="bg-gradient-to-r from-amber-400 to-amber-300 bg-clip-text text-transparent flex items-center gap-2">{title}</span>
+              <span className="text-amber-400/70 text-xl font-bold w-6 h-6 flex items-center justify-center bg-amber-900/30 rounded" aria-hidden="true">{isExpanded ? '−' : '+'}</span>
+            </h2>
+            <div
+              ref={contentRef}
+              className={`transition-all duration-500 ease-in-out ${isExpanded ? 'max-h-[5000px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}
+            >
+              {children}
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    /* =========================================================
+       Stat — petite carte de valeur
+       ========================================================= */
+    const Stat = ({ label, value, icon }) => (
+      <div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 min-w-[160px] shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
+        <div className="flex items-center gap-2 mb-1">
+          {icon && (icon.startsWith?.("http")
+            ? <img src={icon} alt={label} className="w-6 h-6 object-contain rounded-sm" />
+            : <span className="text-amber-400/70 text-lg">{icon}</span>
+          )}
+          <span className="text-xs uppercase text-amber-300/70 tracking-wide font-medium">{label}</span>
+        </div>
+        <span className="text-xl font-bold text-amber-100 group-hover:text-amber-50 transition-colors">{value ?? "—"}</span>
+      </div>
+    );
+
+    /* =========================================================
+       ProgressBar
+       ========================================================= */
+    const ProgressBar = ({ value, max, label, color = "amber" }) => {
+      const percentage = max ? (value / max) * 100 : 0;
+      const colorStyles = {
+        amber: { background: "linear-gradient(to right, #f59e0b, #fbbf24)" },
+        green: { background: "linear-gradient(to right, #10b981, #34d399)" },
+        champion: { background: "linear-gradient(to right, hsl(1,69%,60%), hsl(1,69%,50%))" },
+        fey: { background: "linear-gradient(to right, hsl(146,32%,47%), hsl(146,32%,37%))" },
+        silentRose: { background: "linear-gradient(to right, hsl(217,50%,58%), hsl(217,50%,48%))" }
+      };
+      return (
+        <div className="space-y-1">
+          <div className="flex justify-between text-xs">
+            <span className="text-amber-200/80">{label}</span>
+            <span className="text-amber-300">{value?.toLocaleString?.() ?? 0}</span>
+          </div>
+          <div className="w-full bg-amber-900/20 rounded-full h-2 overflow-hidden">
+            <div className="h-full rounded-full transition-all duration-1000 ease-out"
+                 style={{ width: `${Math.min(percentage, 100)}%`, ...(colorStyles[color] || colorStyles.amber) }} />
+          </div>
+        </div>
+      );
+    };
+
+    /* =========================================================
+       DataTable — tableau générique
+       ========================================================= */
+    const DataTable = ({ headers, data, className = "", isBoss = false }) => (
+      <div className={`overflow-auto rounded-xl border ${isBoss ? "border-amber-600/30" : "border-amber-800/40"} shadow-inner ${className}`}>
+        <table className="min-w-full text-sm">
+          <thead className={`${isBoss ? "bg-gradient-to-r from-[#2a1a0a] to-[#3a2a15]" : "bg-gradient-to-r from-[#1a1814] to-[#1f1d18]"} text-amber-300`}>
+            <tr>
+              {headers.map((h, i) => (
+                <th key={h} scope="col" className={`px-4 py-3 text-left font-semibold ${i === 0 ? "rounded-tl-xl" : ""} ${i === headers.length - 1 ? "rounded-tr-xl" : ""}`}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((row, i) => (
+              <tr key={i} className={i % 2 ? "bg-[#12110f]/50 hover:bg-amber-900/10" : "bg-[#181714]/30 hover:bg-amber-900/10"}>
+                {row.map((cell, j) => (<td key={j} className="px-4 py-3 text-amber-100 border-t border-amber-800/20">{cell}</td>))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+
+    /* =========================================================
+       Constantes / métadonnées
+       ========================================================= */
+    const PROXY = "https://api.codetabs.com/v1/proxy?quest=";
+    const SOULFRAME_API = "https://api.soulframe.com/cdn/getProfileViewingData.php?playerId=";
+    const LORE_URL = "https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/docs/lore.json";
+
+    /* Capacités -> libellés + icônes + groupe */
+    const ABILITY_LABELS = {
+      FeyBloodLustAbility: { name: "Fellust", group: "Tethren", icon: "https://static.wikitide.net/soulframewiki/7/7a/BloodlustNoBacker.png" },
+      FeyRageAbility: { name: "Call of the Ancients", group: "Tethren", icon: "https://static.wikitide.net/soulframewiki/b/ba/RageNoBacker.png" },
+      FeyStompAbility: { name: "Clash", group: "Tethren", icon: "https://static.wikitide.net/soulframewiki/e/e2/SteadyFeetNoBacker.png" },
+      FeyBlindAbility: { name: "Picktrix Powder", group: "Sirin", icon: "https://static.wikitide.net/soulframewiki/f/f2/PocketSandNoBacker.png" },
+      FeyDecoyAbility: { name: "Trick of the Light", group: "Sirin", icon: "https://static.wikitide.net/soulframewiki/9/98/DecoyNoBacker.png" },
+      FeyInvisibleAbility: { name: "Glamour", group: "Sirin", icon: "https://static.wikitide.net/soulframewiki/1/10/InvisibilityNoBacker.png" },
+      FeyWardStoneAbility: { name: "Bestone", group: "Oscelda", icon: "https://static.wikitide.net/soulframewiki/b/b6/TurnToStoneNoBacker.png" },
+      FeyHealthTotemAbility: { name: "Elderbloom", group: "Oscelda", icon: "https://static.wikitide.net/soulframewiki/1/13/HealingWardNoBacker.png" },
+      FeyWardFlockAbility: { name: "Phantom Flock", group: "Oscelda", icon: "https://static.wikitide.net/soulframewiki/0/0b/RazorFlockNoBacker.png" },
+      OdeWaveAbility: { name: "Seismor", group: "Ode Tempest", icon: "https://static.wikitide.net/soulframewiki/6/68/ShockwaveNoBacker.png" },
+      OdeShockAbility: { name: "Astra Sphere", group: "Ode Tempest", icon: "https://static.wikitide.net/soulframewiki/8/87/ShockBallNoBacker.png" },
+      OdeShieldAbility: { name: "Atmos Sphere", group: "Ode Tempest", icon: "https://static.wikitide.net/soulframewiki/b/b9/PersonalShieldNoBacker.png" },
+      FireRainAbility: { name: "Ignus Wroth", group: "Mora's Hand", icon: "https://static.wikitide.net/soulframewiki/b/b4/FieryFissureNoBacker.png" },
+      BlazeArmourAbility: { name: "Ember", group: "Mora's Hand", icon: "https://static.wikitide.net/soulframewiki/2/26/BlazingArmorNoBacker.png" },
+      FirePushAbility: { name: "Inferno", group: "Mora's Hand", icon: "https://static.wikitide.net/soulframewiki/4/49/PyroBlastNoBacker.png" },
+      BromiusSlamAbility: { name: "Rump Thump", group: "Bromius", icon: "https://static.wikitide.net/soulframewiki/7/70/CannonBallNoBacker.png" },
+      BromiusRootAbility: { name: "Wevetroot", group: "Bromius", icon: "https://static.wikitide.net/soulframewiki/1/1c/RootSpikeNoBacker.png" },
+      BromiusArmourAbility: { name: "Song of Growth", group: "Bromius", icon: "https://static.wikitide.net/soulframewiki/c/c3/ArmourPlatingNoBacker.png" },
+      GarrenSapAbility: { name: "Torment", group: "Garren Rood", icon: "https://static.wikitide.net/soulframewiki/d/d2/SapNoBacker.png" },
+      GarrenLightAbility: { name: "Behest", group: "Garren Rood", icon: "https://static.wikitide.net/soulframewiki/6/69/BlindingLightNoBacker.png" },
+      StagStampedeAbility: { name: "Stampede", group: "Garren Rood", icon: "https://static.wikitide.net/soulframewiki/0/0a/StampedeNoBacker.png" },
+      WolfAbility: { name: "Werewalker", group: "Orengall", icon: "https://static.wikitide.net/soulframewiki/8/83/BecomeWolf.png" },
+      WolfPackAbility: { name: "Packhunter", group: "Orengall", icon: "https://static.wikitide.net/soulframewiki/c/cf/WhiteNoBacker-WolfPack.png" },
+      WolfHowlAbility: { name: "Howl", group: "Orengall", icon: "https://static.wikitide.net/soulframewiki/a/a2/WhiteNoBacker-WolfHowl.png" },
+      FeyBowAbility: { name: "FeyBow", group: "Indéfini", icon: "🏹" },
+      FeyPauseAbility: { name: "FeyPause", group: "Indéfini", icon: "⏸️" }
+    };
+    const GROUP_ORDER = ["Tethren","Sirin","Oscelda","Ode Tempest","Mora's Hand","Bromius","Garren Rood","Orengall","Indéfini"];
+    const PACT_ICONS = {
+      "Bromius":"https://static.wikitide.net/soulframewiki/1/13/BromiusPact.png",
+      "Garren Rood":"https://static.wikitide.net/soulframewiki/5/5e/Pacts-Garren.png",
+      "Mora's Hand":"https://static.wikitide.net/soulframewiki/e/ef/Pacts-FennJotar.png",
+      "Ode Tempest":"https://static.wikitide.net/soulframewiki/a/aa/Pacts-Ode.png",
+      "Orengall":"https://static.wikitide.net/soulframewiki/9/9c/Pacts-Orengal.png",
+      "Oscelda":"https://static.wikitide.net/soulframewiki/b/bf/Oscelda.png",
+      "Sirin":"https://static.wikitide.net/soulframewiki/d/dc/Sirin.png",
+      "Tethren":"https://static.wikitide.net/soulframewiki/1/1c/Tethren.png"
+    };
+
+    /* Armes -> nom/groupe/icône */
+    const WEAPON_NAMES = {
+      "BromiusCleaverMeleeWeapon": { name: "Marrow's Bane", category: "main", group: "Long Blade", icon: "https://static.wikitide.net/soulframewiki/4/40/MarrowsBane.png" },
+      "SphereSwordMeleeWeapon": { name: "Sollos-I", category: "main", group: "Long Blade", icon: "https://static.wikitide.net/soulframewiki/e/e3/SollosI.png" },
+      "StarterSwordMeleeWeapon": { name: "Wulder", category: "main", group: "Long Blade", icon: "https://static.wikitide.net/soulframewiki/f/fb/Wulder.png" },
+      "FennJotarSwordMeleeWeapon": { name: "IgneMora", category: "main", group: "Long Blade", icon: "https://static.wikitide.net/soulframewiki/e/eb/IgneMora.png" },
+      "DendritSwordMeleeWeapon": { name: "Vetch", category: "main", group: "Long Blade", icon: "https://static.wikitide.net/soulframewiki/3/39/Vetch.png" },
+      "MockeryTurashMeleeWeapon": { name: "Nurash", category: "main", group: "Long Blade", icon: "https://static.wikitide.net/soulframewiki/5/5f/Nurash.png" },
+      "MockeryStultionMeleeWeapon": { name: "Stultin", category: "main", group: "Long Blade", icon: "https://static.wikitide.net/soulframewiki/7/76/Stultin.png" },
+      "MockeryBrazardMeleeWeapon": { name: "Tessard", category: "main", group: "Long Blade", icon: "https://static.wikitide.net/soulframewiki/4/4f/Tessard.png" },
+      "FeySwordMeleeWeapon": { name: "Dewelion", category: "main", group: "Long Blade", icon: "https://static.wikitide.net/soulframewiki/f/fb/Dewelion.png" },
+      "SphereDualSwordsMeleeWeapon": { name: "Rivt-II", category: "main", group: "Short Blade", icon: "https://static.wikitide.net/soulframewiki/2/2b/RivtII.png" },
+      "GarrenSwordMeleeWeapon": { name: "The Royal Tines", category: "main", group: "Short Blade", icon: "https://static.wikitide.net/soulframewiki/6/68/TheRoyalTines.png" },
+      "SinecureDualDaggersMeleeWeapon": { name: "Unsula", category: "main", group: "Short Blade", icon: "https://static.wikitide.net/soulframewiki/b/b7/Unsula.png" },
+      "SpherePolearmMeleeWeapon": { name: "Vasp-IV", category: "main", group: "Polearm", icon: "https://static.wikitide.net/soulframewiki/c/c0/VaspIV.png" },
+      "GarrenPolearmMeleeWeapon": { name: "Gathannan", category: "main", group: "Polearm", icon: "https://static.wikitide.net/soulframewiki/5/51/Gathannan.png" },
+      "DeoraPolearmMeleeWeapon": { name: "Rook", category: "main", group: "Polearm", icon: "https://static.wikitide.net/soulframewiki/1/1b/Rook.png" },
+      "CleansedSpearMeleeWeapon": { name: "Duhk Halic", category: "main", group: "Polearm", icon: "https://static.wikitide.net/soulframewiki/0/06/DuhkHalic.png" },
+      "StarterStaffCasterRangedMeleeWeapon": { name: "Gwylen", category: "main", group: "Magick", icon: "https://static.wikitide.net/soulframewiki/5/53/Gwylen.png" },
+      "WazzardStaffCasterRangedMeleeWeapon": { name: "The Erstroot", category: "main", group: "Magick", icon: "https://static.wikitide.net/soulframewiki/8/84/TheErstroot.png" },
+      "OdeCastingDeviceRangedMeleeWeapon": { name: "Odiac", category: "main", group: "Magick", icon: "https://static.wikitide.net/soulframewiki/3/30/Odiac.png" },
+      "StarterBowRangedMeleeWeapon": { name: "Thistle", category: "main", group: "Bow", icon: "https://static.wikitide.net/soulframewiki/1/1a/Thistle.png" },
+      "OdeBowRangedMeleeWeapon": { name: "Blitzel", category: "main", group: "Bow", icon: "https://static.wikitide.net/soulframewiki/6/63/Blitzel.png" },
+      "GrandFatherBowRangedMeleeWeapon": { name: "Juniper", category: "main", group: "Bow", icon: "https://static.wikitide.net/soulframewiki/9/9a/Juniper.png" },
+      "DendritSwordAndBoardMeleeWeapon": { name: "Bog & Myrtle", category: "main", group: "Shield", icon: "https://static.wikitide.net/soulframewiki/7/77/BogandMyrtle.png" },
+      "SphereSwordAndBoardMeleeWeapon": { name: "Oryn Umbr", category: "main", group: "Shield", icon: "https://static.wikitide.net/soulframewiki/5/57/OrynUmbr.png" },
+      "SecondaryDaggerMeleeWeapon": { name: "Nettle", category: "secondary", group: "Short Blade", icon: "https://static.wikitide.net/soulframewiki/4/40/Nettle.png" },
+      "SecondaryDendritDaggerMeleeWeapon": { name: "Virdigris", category: "secondary", group: "Short Blade", icon: "https://static.wikitide.net/soulframewiki/0/0b/Virdigris.png" },
+      "SecondaryFeyDaggerMeleeWeapon": { name: "Witan", category: "secondary", group: "Short Blade", icon: "https://static.wikitide.net/soulframewiki/a/a1/Witan.png" },
+      "SecondaryOdeSawDaggerMeleeWeapon": { name: "Grinn", category: "secondary", group: "Short Blade", icon: "https://static.wikitide.net/soulframewiki/c/c7/Grinn.png" },
+      "SecondaryStarterThrowingKnivesRangedMeleeWeapon": { name: "Precklies", category: "secondary", group: "Flyblade", icon: "https://static.wikitide.net/soulframewiki/b/b5/Precklies.png" },
+      "SecondaryThrowingKnivesRangedMeleeWeapon": { name: "Skílter", category: "secondary", group: "Flyblade", icon: "https://static.wikitide.net/soulframewiki/3/3e/Skilter.png" }
+    };
+
+    /* SubBoss (libellés + icônes) */
+    const SUBBOSS_CATEGORY = {
+      name: "SubBoss",
+      enemies: [
+        "SpiderSubBossAvatar","NimrodSubBossAvatar","MendicantWazzardSubBossAvatar",
+        "MockeryArmoredManSubBossAvatar","MendicantKnightBellCleaverSubBossAvatar",
+        "MeleeGreatSwordSubBossAvatar","CorruptedSproutFolkSubBossAvatar",
+        "RangedHunterSubBossAvatar","MeleeMaceOfficerSubBossAvatar","MendicantKingAvatar"
+      ],
+      labels: {
+        SpiderSubBossAvatar:{ name:"Etheldred the Weaver", icon:"https://static.wikitide.net/soulframewiki/1/16/EtheldredTheWeaver.png" },
+        NimrodSubBossAvatar:{ name:"Discharged Nimrod", icon:"https://static.wikitide.net/soulframewiki/c/cb/DischargedNimrod.jpg" },
+        MendicantWazzardSubBossAvatar:{ name:"Wraith of Wastes", icon:"https://static.wikitide.net/soulframewiki/0/0b/WraithofWastes.jpg" },
+        MockeryArmoredManSubBossAvatar:{ name:"Thrice-Bound Impidh", icon:"https://static.wikitide.net/soulframewiki/5/52/ThriceboundImpidh.jpg" },
+        MendicantKnightBellCleaverSubBossAvatar:{ name:"Knell Knight", icon:"https://static.wikitide.net/soulframewiki/f/fe/KnellKnight.jpg" },
+        MeleeGreatSwordSubBossAvatar:{ name:"Castellan Malrog", icon:"https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/Castellan%20Malrog.PNG" },
+        CorruptedSproutFolkSubBossAvatar:{ name:"Kabocha", icon:"https://static.wikitide.net/soulframewiki/0/07/Kabocha.jpg" },
+        RangedHunterSubBossAvatar:{ name:"Gruul Seeker Ruthos", icon:"https://static.wikitide.net/soulframewiki/0/02/GruulSeekerRuthos.jpg" },
+        MeleeMaceOfficerSubBossAvatar:{ name:"Sinecure-errant Gawth", icon:"https://static.wikitide.net/soulframewiki/1/1e/SinecureerrantGawth.jpg" },
+        MendicantKingAvatar:{ name:"Mendicant King", icon:"https://static.wikitide.net/soulframewiki/6/67/MendicantKingSquare.png" }
+      }
+    };
+
+    /* Catégories d'ennemis (filtres) */
+    const ENEMY_CATEGORIES = {
+      GRUNTS:{ name:"Grunt Standards", enemies:[
+        "MeleeGruntAvatar","DualMeleeGruntAvatar","MeleeGruntShieldAvatar","MeleeGruntNightAvatar",
+        "MeleeAxeGruntGladesAvatar","MeleeSpikedMaceGruntGladesAvatar","MeleeDualAxeGruntGladesAvatar",
+        "MeleeLongSwordGruntGladesAvatar","CorruptedSproutFolkGruntAvatar","CorruptedSproutFolkSpearGruntAvatar",
+        "UCGruntAvatar","UCDualGruntAvatar"
+      ]},
+      ELITES:{ name:"Élites", enemies:[
+        "EliteMeleeGruntAvatar","MeleeGruntShieldEliteAvatar","DualMeleeGruntEliteAvatar",
+        "EliteUCGruntAvatar","RangedHunterEliteAvatar","OdeCasterEliteAvatar","SpiderEliteAvatar"
+      ]},
+      RANGED:{ name:"Tireurs", enemies:["RangedHunterAvatar","RangedHunterGladesDaggerAvatar"]},
+      OFFICERS:{ name:"Officiers", enemies:["MeleeSwordOfficerAvatar","MeleeMaceOfficerAvatar"]},
+      ODE_TEMPEST:{ name:"Ode Tempest", enemies:["OdeCasterAvatar","OdeAttackDogAvatar"]},
+      MENDICANT:{ name:"Mendicants", enemies:[
+        "MendicantThrallAvatar","MendicantKnightAvatar","MendicantWazzardKnightAvatar",
+        "MendicantCasterAvatar","MendicantWazzardAvatar"
+      ]},
+      CREATURES:{ name:"Créatures", enemies:[
+        "SpiderAvatar","WazzardSpiderAvatar","BaliqShrimpAvatar","BaliqShrimpGladesAvatar",
+        "SquidplantAvatar","SquidplantChildAvatar","CorruptedSlugAvatar"
+      ]},
+      SPIRITS:{ name:"Spectres", enemies:[
+        "WanderingGhostSoldierAvatar","WanderingGhostKnightAvatar","WorldCircadeGhostKnightAvatar",
+        "CircadeGhostKnightAvatar","HallowSpiritBaseAvatar","CryptSpiritBaseAvatar",
+        "AvarotHallowSpiritAvatar","TalHallowSpiritAvatar"
+      ]},
+      CORRUPTED:{ name:"Corrompus", enemies:["CorruptedSproutFolkAvatar","CorruptedBromiusAvatar"]},
+      BOSSES:{ name:"Boss & Uniques", enemies:[
+        "NimrodAvatar","MockeryManAvatar","MockeryArmoredManAvatar","GarrenHerdBaseAvatar",
+        "SiegeEngineTaleAvatar","EnvoyAvatar","OrengallQuestSiegeEngineAvatar","SfProxyAvatar"
+      ]},
+      OTHER:{ name:"Divers", enemies:[
+        "MeleeSwordAvatar","MeleeDaggerAndShieldAvatar","MeleeMaceAvatar","MeleeAxeAvatar","MeleeGruntMessengerAvatar"
+      ]}
+    };
+
+    /* Compendium (infos enrichies rapides) */
+    const ENEMY_COMPENDIUM = {
+      "MeleeGruntAvatar":{ name:"Mendicant Grunt", faction:"Mendicant", biome:"Undercity", type:"Grunt" },
+      "DualMeleeGruntAvatar":{ name:"Dual Wielder", faction:"Mendicant", biome:"Undercity", type:"Grunt" },
+      "EliteMeleeGruntAvatar":{ name:"Elite Grunt", faction:"Mendicant", biome:"Undercity", type:"Elite" },
+      "RangedHunterAvatar":{ name:"Ranged Hunter", faction:"Mendicant", biome:"Glades", type:"Ranged" },
+      "RangedHunterEliteAvatar":{ name:"Elite Ranged Hunter", faction:"Mendicant", biome:"Glades", type:"Elite" },
+      "MendicantWazzardSubBossAvatar":{ name:"Wraith of Wastes", faction:"Mendicant", biome:"Wazzard", type:"SubBoss", icon:"https://static.wikitide.net/soulframewiki/0/0b/WraithofWastes.jpg" },
+      "NimrodSubBossAvatar":{ name:"Discharged Nimrod", faction:"Mendicant", biome:"Wastes", type:"SubBoss", icon:"https://static.wikitide.net/soulframewiki/c/cb/DischargedNimrod.jpg" },
+      "SpiderSubBossAvatar":{ name:"Etheldred the Weaver", faction:"Wildlife", biome:"Glades", type:"SubBoss", icon:"https://static.wikitide.net/soulframewiki/1/16/EtheldredTheWeaver.png" },
+      "MockeryArmoredManSubBossAvatar":{ name:"Thrice-Bound Impidh", faction:"Mockery", biome:"Forest", type:"SubBoss", icon:"https://static.wikitide.net/soulframewiki/5/52/ThriceboundImpidh.jpg" },
+      "MendicantKingAvatar":{ name:"The Mendicant King", faction:"Mendicant", biome:"Wastes", type:"Boss", icon:"https://static.wikitide.net/soulframewiki/6/67/MendicantKingSquare.png" },
+      "CorruptedBromiusAvatar":{ name:"Corrupted Bromius", faction:"Corrupted", biome:"Circade", type:"Boss", icon:"https://static.wikitide.net/soulframewiki/1/18/CorruptedBromius.jpg" },
+      "GarrenHerdBaseAvatar":{ name:"Garren's Herd", faction:"Wildlife", biome:"Glades", type:"Boss" },
+      "CorruptedSproutFolkAvatar":{ name:"Corrupted Sproutfolk", faction:"Corrupted", biome:"Glades", type:"Corrupted" },
+      "CorruptedSproutFolkSubBossAvatar":{ name:"Kabocha", faction:"Corrupted", biome:"Glades", type:"SubBoss", icon:"https://static.wikitide.net/soulframewiki/0/07/Kabocha.jpg" },
+      "RangedHunterSubBossAvatar":{ name:"Gruul Seeker Ruthos", faction:"Mendicant", biome:"Glades", type:"SubBoss", icon:"https://static.wikitide.net/soulframewiki/0/02/GruulSeekerRuthos.jpg" }
+    };
+
+    /* =========================================================
+       App principale
+       ========================================================= */
+    const App = () => {
+      // Vues + transition
+      const [view, setView] = useState("PA");
+      const [isTransitioning, setIsTransitioning] = useState(false);
+      const [payload, setPayload] = useState(null);
+      const [error, setError] = useState("");
+
+      // UI : entrée + toasts
+      const [accountId, setAccountId] = useState("");
+      const [isUpdating, setIsUpdating] = useState(false);
+      const [updateMessage, setUpdateMessage] = useState("");
+
+      // Lore rotatif
+      const [loreLines, setLoreLines] = useState([]);
+      const [loreIdx, setLoreIdx] = useState(0);
+        // Helper tooltip (keep-open on hover)
+      const [showHelp, setShowHelp] = useState(false);
+      const helpTimer = useRef(null);
+
+      const openHelp = () => {
+       if (helpTimer.current) clearTimeout(helpTimer.current);
+         setShowHelp(true);
+      };
+      const closeHelp = () => {
+       helpTimer.current = setTimeout(() => setShowHelp(false), 120);
+      };
+
+      useEffect(() => () => helpTimer.current && clearTimeout(helpTimer.current), []);
+
+      /* --- AccountId localStorage (simple & pratique) --- */
+      useEffect(() => {
+        const saved = localStorage.getItem('soulframe_accountId');
+        if (saved) setAccountId(saved);
+      }, []);
+      useEffect(() => {
+        if (accountId) localStorage.setItem('soulframe_accountId', accountId);
+      }, [accountId]);
+
+      /* --- Fetch + transition velvet smooth --- */
+      async function fetchViaId(idOverride) {
+        const id = idOverride || accountId;
+        if (!id) return setError("Veuillez entrer un AccountId valide.");
+
+        try {
+          setIsUpdating(true);
+          setError("");
+
+          const url = `${PROXY}${encodeURIComponent(SOULFRAME_API + id)}`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const json = await res.json();
+          if (json?.error) throw new Error(json.error);
+
+          // Toast succès
+          setUpdateMessage("✅ Données prêtes");
+          setTimeout(() => setUpdateMessage(""), 1500);
+
+          // Transition (doit matcher le CSS)
+          setIsTransitioning(true);
+          const D_VEIL   = 2600;
+          const T_SWITCH = 1850;
+          const T_END    = D_VEIL + 80;
+
+          setTimeout(() => {
+            setPayload(json);
+            setView("PS");
+            if (backgroundMusic && !musicStarted) startBackgroundMusic();
+          }, T_SWITCH);
+
+          setTimeout(() => {
+            setIsTransitioning(false);
+          }, T_END);
+
+        } catch (e) {
+          setError(e?.message || String(e));
+          setUpdateMessage("❌ Échec de la mise à jour");
+          setTimeout(() => setUpdateMessage(""), 3000);
+        } finally {
+          setIsUpdating(false);
+        }
+      }
+
+      /* --- Lore : je charge le JSON et je cycle tant que pas connecté --- */
+      useEffect(() => {
+        if (payload) return;
+        let timer;
+        (async () => {
+          try {
+            const res = await fetch(LORE_URL);
+            let list = await res.json();
+            if (Array.isArray(list)) {
+              list = Array.from(new Set(list.map(s => (typeof s === "string" ? s.trim() : "")).filter(Boolean)));
+            } else list = [];
+            if (list.length) {
+              setLoreLines(list);
+              setLoreIdx(Math.floor(Math.random() * list.length));
+              timer = setInterval(() => setLoreIdx(p => (p + 1) % list.length), 20000);
+            }
+          } catch { /* pas bloquant */ }
+        })();
+        return () => timer && clearInterval(timer);
+      }, [payload]);
+
+      /* --- Découpe payload --- */
+      const r0 = payload?.Results?.[0];
+      const stats = payload?.Stats || {};
+      const abilities = stats.Abilities || [];
+      const enemies = stats.Enemies || [];
+      const weapons = stats.Weapons || [];
+
+      /* --- Info joueur --- */
+      const playerInfo = useMemo(() => {
+        if (!r0) return null;
+        const created = r0?.Created?.$date?.$numberLong;
+        const factions = r0?.Affiliations || [];
+        const championFaction = factions.find(f => f.Tag === "ChampionSyndicate");
+        const feyFaction = factions.find(f => f.Tag === "FeySyndicate");
+        const silentRoseFaction = factions.find(f => f.Tag === "SilentRoseSyndicate");
+        return {
+          name: r0?.DisplayName,
+          accountOid: r0?.AccountId?.$oid,
+          created: created ? new Date(Number(created)).toLocaleDateString() : "—",
+          mastery: stats?.PlayerLevel ?? "—",
+          timePlayedH: stats?.TimePlayedSec ? (stats.TimePlayedSec / 3600).toFixed(1) + " h" : "—",
+          migrated: r0?.MigratedToConsole ? "Yes" : "No",
+          xp: stats?.XP ? stats.XP.toLocaleString() : "—",
+          pickupCount: stats?.PickupCount ? stats.PickupCount.toLocaleString() : "—",
+          income: stats?.Income ? stats.Income.toLocaleString() : "—",
+          championStanding: championFaction?.Standing ?? 0,
+          championTitle: championFaction?.Title ?? 0,
+          feyStanding: feyFaction?.Standing ?? 0,
+          feyTitle: feyFaction?.Title ?? 0,
+          silentRoseStanding: silentRoseFaction?.Standing ?? 0,
+          silentRoseTitle: silentRoseFaction?.Title ?? 0
+        };
+      }, [r0, stats]);
+
+      /* --- Capacités groupées par pacte --- */
+      const groupedAbilities = useMemo(() => {
+        const groups = {};
+        abilities.forEach(ab => {
+          const key = ab.type?.split("/")?.pop();
+          const meta = ABILITY_LABELS[key];
+          if (!meta) return;
+          if (!groups[meta.group]) groups[meta.group] = [];
+          groups[meta.group].push({ name: meta.name, used: ab.used, icon: meta.icon });
+        });
+        return groups;
+      }, [abilities]);
+
+      /* --- Ennemis groupés (inclut SubBoss) --- */
+      const groupedEnemies = useMemo(() => {
+        const groups = {};
+        groups.SUBBOSS = {
+          name: SUBBOSS_CATEGORY.name,
+          enemies: enemies.filter(e => SUBBOSS_CATEGORY.enemies.includes(e.type?.split("/")?.pop()))
+        };
+        Object.entries(ENEMY_CATEGORIES).forEach(([k, cat]) => {
+          groups[k] = {
+            name: cat.name,
+            enemies: enemies.filter(e => cat.enemies.includes(e.type?.split("/")?.pop()))
+          };
+        });
+        return groups;
+      }, [enemies]);
+
+      /* --- Utils armes --- */
+      const getWeaponCategory = (weaponType) => {
+        const key = weaponType?.split("/")?.pop();
+        const data = WEAPON_NAMES[key];
+        return data ? data.category : "unknown";
+      };
+      const getWeaponGroup = (weaponType) => {
+        const key = weaponType?.split("/")?.pop();
+        const data = WEAPON_NAMES[key];
+        return data ? data.group : "Unknown";
+      };
+      const getWeaponDisplayData = (weaponType) => {
+        const key = weaponType?.split("/")?.pop();
+        const data = WEAPON_NAMES[key];
+        return data ? { name: data.name, icon: data.icon, group: data.group } : { name: key || "Unknown Weapon", icon: "❓", group: "Unknown" };
+      };
+
+      /* --- Armes groupées (je range unknown en tableau) --- */
+      const groupedWeapons = useMemo(() => {
+        const groups = { main: {}, secondary: {}, unknown: [] };
+        weapons.forEach(w => {
+          const category = getWeaponCategory(w.type);
+          const group = getWeaponGroup(w.type);
+          if (category === "unknown") {
+            groups.unknown.push(w);
+          } else {
+            if (!groups[category][group]) groups[category][group] = [];
+            groups[category][group].push(w);
+          }
+        });
+        return groups;
+      }, [weapons]);
+
+      /* --- Totaux combat --- */
+      const totalStats = useMemo(() => {
+        const totalKills = weapons.reduce((s, w) => s + (w.kills || 0), 0);
+        const totalHeadshots = weapons.reduce((s, w) => s + (w.headshots || 0), 0);
+        const totalEnemyKills = enemies.reduce((s, e) => s + (e.kills || 0), 0);
+        return {
+          totalKills, totalHeadshots, totalEnemyKills,
+          headshotRatio: totalKills ? ((totalHeadshots / totalKills) * 100).toFixed(1) + "%" : "0%"
+        };
+      }, [weapons, enemies]);
+
+      /* --- Ennemis enrichis pour compendium --- */
+      const enrichedEnemies = useMemo(() => enemies.map(e => {
+        const key = e.type?.split("/")?.pop();
+        const meta = ENEMY_COMPENDIUM[key] || {};
+        return {
+          ...e, id: key, name: meta.name || key, faction: meta.faction || "Unknown",
+          biome: meta.biome || "—", category: meta.type || "Unknown", icon: meta.icon || null
+        };
+      }), [enemies]);
+
+      /* --- SubBoss display name --- */
+      const getSubBossDisplayName = (enemyType) => {
+        const key = enemyType?.split("/")?.pop();
+        return SUBBOSS_CATEGORY.labels[key]?.name || key || "Unknown";
+      };
+
+      /* --- Favoris (pacte/armes/subboss) --- */
+      const favoriteEquipment = useMemo(() => {
+        if (!payload) return null;
+
+        const pactUsage = {};
+        Object.entries(groupedAbilities).forEach(([pact, arr]) => {
+          pactUsage[pact] = arr.reduce((s, ab) => s + (ab.used || 0), 0);
+        });
+        const favoritePact = Object.entries(pactUsage).reduce((m, [p, u]) => (u > (m.usage || 0) ? { pact: p, usage: u } : m), {});
+
+        const favMain = Object.values(groupedWeapons.main).flat().reduce((m, w) => {
+          const t = w.equipTime || 0;
+          return t > (m.equipTime || 0) ? { name: getWeaponDisplayData(w.type).name, equipTime: t } : m;
+        }, {});
+
+        const favSec = Object.values(groupedWeapons.secondary).flat().reduce((m, w) => {
+          const t = w.equipTime || 0;
+          return t > (m.equipTime || 0) ? { name: getWeaponDisplayData(w.type).name, equipTime: t } : m;
+        }, {});
+
+        const favSB = (groupedEnemies.SUBBOSS?.enemies || []).reduce((m, e) => {
+          const k = e.kills || 0;
+          return k > (m.kills || 0) ? { name: getSubBossDisplayName(e.type), kills: k } : m;
+        }, {}) || { name: "Aucun", kills: 0 };
+
+        return { favoritePact, favoriteMainWeapon: favMain, favoriteSecondaryWeapon: favSec, favoriteSubBoss: favSB };
+      }, [payload, groupedAbilities, groupedWeapons, groupedEnemies]);
+
+      /* --- Helpers formatage --- */
+      const formatXP = (xp) =>
+        xp >= 1e6 ? (xp/1e6).toFixed(1)+'M' :
+        xp >= 1e3 ? (xp/1e3).toFixed(1)+'K' :
+        (xp||0).toLocaleString();
+
+      /* ===========================
+         Rendu
+         =========================== */
+      return (
+        <div className="min-h-screen flex flex-col text-amber-100 font-[Cormorant_Garamond] selection:bg-amber-500/20">
+          {/* ===== Header sticky (après chargement) ===== */}
+          {payload && (
+            <nav className="sticky top-0 z-50 backdrop-blur-md bg-[#12120f]/90 border-b border-amber-900/40 shadow-2xl shadow-amber-900/10" aria-label="Navigation des sections">
+              <div className="max-w-7xl mx-auto px-4 py-4">
+                <div className="grid grid-cols-[auto,1fr,auto] items-center gap-4">
+                  {/* Logo + Titre */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-[72px] h-[72px] flex items-center justify-center rounded-lg overflow-hidden">
+                      <img
+                        src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/logoV1big.png"
+                        alt="Soulframe Tracker Logo"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <img
+                      src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/Soulframe_Tracker_name.png"
+                      alt="Soulframe Tracker"
+                      className="h-14 object-contain mt-4"
+                    />
+                  </div>
+
+                  {/* Navigation centrée */}
+                  <div className="justify-self-center">
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {["player", "favorite-equipment", "subboss", "abilities", "weapons", "enemies"].map((sec) => (
+                        <a
+                          key={sec}
+                          href={`#${sec}`}
+                          className="px-3 py-1 rounded-lg bg-amber-900/20 hover:bg-amber-800/30 text-amber-200 hover:text-amber-100 transition-all duration-300 text-sm border border-amber-800/40 hover:border-amber-700/50"
+                        >
+                          {sec === "subboss" ? "👑 SubBoss" : sec.charAt(0).toUpperCase() + sec.slice(1)}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Miroir visuel */}
+                  <div className="flex items-center gap-3 opacity-0 pointer-events-none select-none" aria-hidden="true">
+                    <div className="w-[72px] h-[72px] rounded-lg overflow-hidden">
+                      <img
+                        src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/logoV1big.png"
+                        alt=""
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <img
+                      src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/Soulframe_Tracker_name.png"
+                      alt=""
+                      className="h-14 object-contain mt-4"
+                    />
+                  </div>
+                </div>
+              </div>
+            </nav>
+          )}
+
+          {/* ===== Toast de mise à jour ===== */}
+          {updateMessage && (
+            <div className={`fixed top-20 left-1/2 -translate-x-1/2 ${updateMessage.includes("✅") ? "bg-green-900/90" : "bg-red-900/90"} text-amber-100 px-6 py-3 rounded-lg text-sm shadow-2xl transition-all duration-500 animate-fade-in-out z-50 border ${updateMessage.includes("✅") ? "border-green-700/50" : "border-red-700/50"}`} role="status" aria-live="polite">
+              {updateMessage}
+            </div>
+          )}
+
+                {/* ===== Contenu principal : PA / PS ===== */}
+      <main className="flex-1 max-w-7xl mx-auto px-4 py-8">
+        <div className="h-2 sm:h-0" />
+
+        <div className="page-stack">
+          {/* Erreur API */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-900/20 border border-red-700/40 rounded-xl text-red-200 text-sm">
+              ❌ Erreur: {error}
+            </div>
+          )}
+
+          {/* PA (accueil) */}
+          <div
+            className={`view ${view === "PA" ? "" : "hidden"}`}
+            id="PA"
+            aria-hidden={view !== "PA"}
+          >
+            {!payload && !error && (
+              <div className="text-center py-16 text-amber-300/70">
+                {/* Logo principal */}
+                <div className="flex justify-center mb-5">
+                  <div className="w-[352px] h-[352px] flex items-center justify-center rounded-lg overflow-hidden">
+                    <img
+                      src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/logoV1big.png"
+                      alt="Soulframe Tracker Logo"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                </div>
+
+                {/* Logo texte */}
+                <div className="flex justify-center mb-8 mt-[-90px]">
+                  <img
+                    src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/Soulframe_Tracker_name.png"
+                    alt="Soulframe Tracker"
+                    className="w-[252px] h-[252px] object-contain"
+                  />
+                </div>
+
+                {/* Zone de saisie AccountId + helper "?" à droite */}
+                <div className="flex justify-center mb-8">
+                  <div className="w-full max-w-2xl flex items-stretch gap-3">
+                    {/* Barre AccountID + bouton Enter */}
+                    <div className="flex-1">
+                      <div className="rounded-xl border border-amber-700/40 bg-[#13120F]/90 shadow-2xl shadow-amber-900/10 overflow-hidden">
+                        <div className="grid grid-cols-[1fr_auto] items-stretch">
+                          {/* Champ AccountId seul */}
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={accountId}
+                              onChange={(e) => setAccountId(e.target.value)}
+                              placeholder="AccountId …"
+                              className="w-full h-14 pl-5 pr-5 bg-transparent outline-none text-amber-200 placeholder-amber-400/30"
+                              onKeyDown={(e) => e.key === "Enter" && fetchViaId()}
+                              aria-label="Saisir votre AccountId Soulframe"
+                            />
+                          </div>
+
+                          {/* Bouton Enter */}
+                          <button
+                            onClick={() => fetchViaId()}
+                            disabled={isUpdating}
+                            className="h-14 px-8 font-semibold tracking-wide bg-[#12110E] hover:bg-[#12110E] text-amber-200 hover:text-amber-400 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Entrer"
+                          >
+                            {isUpdating ? "Loading…" : "Enter"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Petit "?" à droite, en dehors de la barre */}
+<div className="flex items-center">
+  <div
+    className="relative"
+    onMouseEnter={openHelp}
+    onMouseLeave={closeHelp}
+    onFocus={openHelp}
+    onBlur={closeHelp}
+  >
+    <button
+      type="button"
+      aria-expanded={showHelp}
+      aria-haspopup="dialog"
+      className="w-7 h-7 flex items-center justify-center rounded-full border border-amber-700/60 text-amber-300/80 text-sm bg-amber-900/40 hover:bg-amber-800/70 hover:text-amber-100 transition-colors shadow-md"
+      title="Comment trouver votre Account ID Soulframe ?"
+    >
+      ?
+    </button>
+
+    {showHelp && (
+      <div
+        role="dialog"
+        aria-label="Aide pour trouver l'Account ID"
+        className="absolute left-full top-1/2 -translate-y-1/2 ml-3 w-80 z-[100000] select-text"
+        // important: permettre l’interaction pour copier le texte
+        onMouseEnter={openHelp}
+        onMouseLeave={closeHelp}
+      >
+        <div className="bg-[#11100d]/95 border border-amber-700/60 rounded-xl p-3 text-xs text-left text-amber-100 shadow-2xl shadow-amber-900/40 pointer-events-auto">
+          <p className="font-semibold text-amber-300 mb-1">
+            🔍 Comment trouver votre Account ID Soulframe ?
+          </p>
+
+          <p className="mb-1">
+            📋 <span className="font-semibold">Méthode recommandée :</span>
+          </p>
+          <ul className="list-disc list-inside space-y-0.5 mb-2 text-amber-100/90">
+            <li>Ouvrez le launcher Soulframe</li>
+            <li>Allez dans <span className="font-semibold">Paramètres ⚙️</span></li>
+            <li>Cliquez sur <span className="font-semibold">« Diagnostique [Fichiers Logs] »</span></li>
+            <li>Un dossier sera créé sur votre Bureau</li>
+            <li>Ouvrez le fichier <span className="font-semibold">EE.log</span></li>
+            <li>
+              Appuyez sur <span className="font-semibold">Ctrl + F</span> et cherchez :
+              <code className="font-mono text-amber-200 block my-2">Sys [Info]: Logged in</code>
+            </li>
+            <li>Votre pseudo et votre Account ID (24 caractères) seront indiqués</li>
+          </ul>
+
+          <p className="mb-1">
+            🔄 <span className="font-semibold">Si la recherche ne donne rien :</span>
+          </p>
+          <ul className="list-disc list-inside space-y-0.5 mb-2 text-amber-100/90">
+            <li>Lancez le jeu, jouez 1–2 minutes puis fermez-le proprement</li>
+            <li>Refaites un « Diagnostique [Fichiers Logs] » et recherchez à nouveau</li>
+          </ul>
+
+          <p className="mt-1 text-amber-300/90">
+            ⚠️ <span className="font-normal text-amber-200/90">
+              Votre Account ID est personnel – partagez-le uniquement avec des sources de confiance.
+            </span>
+          </p>
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+                  </div>
+                </div>
+
+                {/* Lore panneau */}
+                <div className="max-w-3xl mx-auto px-6">
+                  <div className="bg-[#0f0f0e]/70 border border-amber-800/40 rounded-xl p-6 shadow-amber-900/10 shadow-2xl lore-panel">
+                    <p
+                      key={loreIdx}
+                      className="lore-anim text-amber-200/90 text-lg sm:text-xl leading-relaxed tracking-wide break-words"
+                    >
+                      {loreLines.length ? loreLines[loreIdx] : "…"}
+                    </p>
+                  </div>
+                  <div className="mt-3 text-xs text-amber-400/60">
+                    <span>Credit: Avakot.org</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* PS (stats) */}
+          <div
+            className={`view ${view === "PS" ? "" : "hidden"}`}
+            id="PS"
+            aria-hidden={view !== "PS"}
+          >
+            {/* Player Information */}
+            <Card id="player" title="Player Information">
+              {/* === ORB MR + PLAYER NAME === */}
+              <div className="flex items-center gap-3 mb-10">
+                <div
+                  className="relative flex items-center justify-center"
+                  style={{ width: "200px", height: "200px" }}
+                >
+                  <img
+                    src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/Sphere_MR%20.png"
+                    alt="Mastery Orb"
+                    className="absolute inset-0 w-full h-full object-contain drop-shadow-[0_0_15px_rgba(212,175,55,0.15)]"
+                  />
+                  <span className="relative z-10 text-6xl font-bold text-amber-200 drop-shadow-[0_0_8px_rgba(212,175,55,0.35)] select-none">
+                    {playerInfo?.mastery ?? "—"}
+                  </span>
+                </div>
+
+                <div className="flex flex-col justify-center">
+                  <span className="text-4xl font-serif font-bold text-amber-100 tracking-wide drop-shadow-[0_0_6px_rgba(212,175,55,0.25)]">
+                    {playerInfo?.name ?? "—"}
+                  </span>
+                </div>
+              </div>
+
+              {/* === STATS PRINCIPALES === */}
+              {/* ... (le reste de ta section Player Information reste inchangé) */}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Time Played */}
+                    <div className="flex items-center gap-4 p-5 rounded-2xl bg-[#0a0a09]/70 backdrop-blur-sm 
+                                    shadow-[0_0_20px_rgba(212,175,55,0.1)] border border-amber-900/20">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+                        className="text-amber-300 drop-shadow-[0_0_5px_rgba(212,175,55,0.25)]">
+                        <circle cx="12" cy="12" r="9" stroke="#CDAF55" strokeWidth="1.8"/>
+                        <path d="M12 7v5l3 2" stroke="#E5D7A2" strokeWidth="1.6" strokeLinecap="round"/>
+                      </svg>
+                      <div>
+                        <span className="text-amber-300/80 text-sm uppercase">Time Played</span>
+                        <div className="text-2xl font-bold text-amber-100">
+                          {playerInfo?.timePlayedH ?? "—"}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Account Created */}
+                    <div className="flex items-center gap-4 p-5 rounded-2xl bg-[#0a0a09]/70 backdrop-blur-sm 
+                                    shadow-[0_0_20px_rgba(212,175,55,0.1)] border border-amber-900/20">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+                        className="text-amber-300 drop-shadow-[0_0_5px_rgba(212,175,55,0.25)]">
+                        <rect x="4" y="5" width="16" height="15" rx="2" stroke="#CDAF55" strokeWidth="1.8"/>
+                        <path d="M4 9h16" stroke="#E5D7A2" strokeWidth="1.4"/>
+                        <path d="M8 3v4M16 3v4" stroke="#E5D7A2" strokeWidth="1.4" strokeLinecap="round"/>
+                      </svg>
+                      <div>
+                        <span className="text-amber-300/80 text-sm uppercase">Account Created</span>
+                        <div className="text-2xl font-bold text-amber-100">
+                          {playerInfo?.created ?? "—"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* === STATS SECONDAIRES === */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    {/* ITEMS COLLECTED (fix: j’utilise bien les stats de l’API) */}
+                    <div className="flex items-center gap-4 p-5 rounded-2xl bg-[#0a0a09]/70 backdrop-blur-sm 
+                                    shadow-[0_0_20px_rgba(212,175,55,0.1)] border border-amber-900/20">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+                        className="text-amber-300 drop-shadow-[0_0_5px_rgba(212,175,55,0.25)]">
+                        <path d="M4 15l8-10 8 10H4z" stroke="#CDAF55" strokeWidth="1.8"/>
+                      </svg>
+                      <div>
+                        <span className="text-amber-300/80 text-sm uppercase">Items Collected</span>
+                        <div className="text-2xl font-bold text-amber-100">
+                          {playerInfo?.pickupCount ?? "—"}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* TOTAL DRACS (fix: même chose) */}
+                    <div className="flex items-center gap-4 p-5 rounded-2xl bg-[#0a0a09]/70 backdrop-blur-sm 
+                                    shadow-[0_0_20px_rgba(212,175,55,0.1)] border border-amber-900/20">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+                        className="text-amber-300 drop-shadow-[0_0_5px_rgba(212,175,55,0.25)]">
+                        <circle cx="12" cy="12" r="9" stroke="#CDAF55" strokeWidth="1.8"/>
+                        <path d="M8 12h8" stroke="#E5D7A2" strokeWidth="1.6" strokeLinecap="round"/>
+                      </svg>
+                      <div>
+                        <span className="text-amber-300/80 text-sm uppercase">Total Dracs</span>
+                        <div className="text-2xl font-bold text-amber-100">
+                          {playerInfo?.income ?? "—"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* === FACTIONS === */}
+                  <div className="mt-12 pt-6 border-t border-amber-900/30">
+                    <h3 className="text-amber-300 text-lg font-semibold mb-5">Factions Progress</h3>
+
+                    <div className="space-y-7">
+                      {/* Champion */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-amber-200 text-sm flex items-center gap-2">
+                            Kith of King
+                            <span className="w-3 h-3 rounded-full" style={{background:"#a83b3b"}}></span>
+                          </span>
+                          <span className="text-amber-300 text-sm">
+                            {(playerInfo?.championStanding ?? 0).toLocaleString()}
+                          </span>
+                        </div>
+
+                        <div className="h-3 rounded-full bg-amber-900/20 overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-700"
+                            style={{
+                              width: `${Math.min(((playerInfo?.championStanding ?? 0) / 30000) * 100, 100)}%`,
+                              background: "linear-gradient(to right, #E1C172, #C7A053)"
+                            }}></div>
+                        </div>
+                      </div>
+
+                      {/* Fey */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-amber-200 text-sm flex items-center gap-2">
+                            Alca Children
+                            <span className="w-3 h-3 rounded-full" style={{background:"#5e8b5e"}}></span>
+                          </span>
+                          <span className="text-amber-300 text-sm">
+                            {(playerInfo?.feyStanding ?? 0).toLocaleString()}
+                          </span>
+                        </div>
+
+                        <div className="h-3 rounded-full bg-amber-900/20 overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-700"
+                            style={{
+                              width: `${Math.min(((playerInfo?.feyStanding ?? 0) / 30000) * 100, 100)}%`,
+                              background: "linear-gradient(to right, #E1C172, #C7A053)"
+                            }}></div>
+                        </div>
+                      </div>
+
+                      {/* Silent Rose */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-amber-200 text-sm flex items-center gap-2">
+                            The Silent Rose
+                            <span className="w-3 h-3 rounded-full" style={{background:"#4a6b9c"}}></span>
+                          </span>
+                          <span className="text-amber-300 text-sm">
+                            {(playerInfo?.silentRoseStanding ?? 0).toLocaleString()}
+                          </span>
+                        </div>
+
+                        <div className="h-3 rounded-full bg-amber-900/20 overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-700"
+                            style={{
+                              width: `${Math.min(((playerInfo?.silentRoseStanding ?? 0) / 30000) * 100, 100)}%`,
+                              background: "linear-gradient(to right, #E1C172, #C7A053)"
+                            }}></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Favoris */}
+                {favoriteEquipment && (
+                  <Card id="favorite-equipment" title="⭐ Favorite Equipment">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {/* Pacte */}
+                      <div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-amber-400 text-lg">⚜️</span>
+                          <span className="text-xs uppercase text-amber-300/70 tracking-wide font-medium">Favorite Pact</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-lg font-bold text-amber-100 group-hover:text-amber-50 transition-colors mb-1 block">{favoriteEquipment.favoritePact.pact || "—"}</span>
+                            <span className="text-sm text-amber-400/70">{favoriteEquipment.favoritePact.usage?.toLocaleString() || "0"} uses</span>
+                          </div>
+                          <div className="w-20 h-20 bg-amber-900/20 rounded-lg flex items-center justify-center overflow-hidden">
+                            {PACT_ICONS[favoriteEquipment.favoritePact.pact]
+                              ? <img src={PACT_ICONS[favoriteEquipment.favoritePact.pact]} alt={favoriteEquipment.favoritePact.pact} className="w-16 h-16 object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.3)]" />
+                              : <span className="text-amber-400/40 text-lg">⚜️</span>}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Main */}
+                      <div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-amber-400 text-lg">⚔️</span>
+                          <span className="text-xs uppercase text-amber-300/70 tracking-wide font-medium">Main Weapon</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-lg font-bold text-amber-100 group-hover:text-amber-50 transition-colors mb-1 block">{favoriteEquipment.favoriteMainWeapon.name || "—"}</span>
+                            <span className="text-sm text-amber-400/70">
+                              {favoriteEquipment.favoriteMainWeapon.equipTime ? `${(favoriteEquipment.favoriteMainWeapon.equipTime / 3600).toFixed(1)} h` : "0 h"}
+                            </span>
+                          </div>
+                          <div className="w-20 h-12 bg-amber-900/20 rounded-lg flex items-center justify-center overflow-hidden">
+                            {favoriteEquipment.favoriteMainWeapon.name && (
+                              <img
+                                src={(() => {
+                                  const w = weapons.find(w => getWeaponDisplayData(w.type).name === favoriteEquipment.favoriteMainWeapon.name);
+                                  return getWeaponDisplayData(w?.type).icon;
+                                })()}
+                                alt={favoriteEquipment.favoriteMainWeapon.name}
+                                className="w-16 h-16 object-contain"
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Secondary */}
+                      <div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-amber-400 text-lg">🗡️</span>
+                          <span className="text-xs uppercase text-amber-300/70 tracking-wide font-medium">Secondary Weapon</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-lg font-bold text-amber-100 group-hover:text-amber-50 transition-colors mb-1 block">{favoriteEquipment.favoriteSecondaryWeapon.name || "—"}</span>
+                            <span className="text-sm text-amber-400/70">
+                              {favoriteEquipment.favoriteSecondaryWeapon.equipTime ? `${(favoriteEquipment.favoriteSecondaryWeapon.equipTime / 3600).toFixed(1)} h` : "0 h"}
+                            </span>
+                          </div>
+                          <div className="w-20 h-12 bg-amber-900/20 rounded-lg flex items-center justify-center overflow-hidden">
+                            {favoriteEquipment.favoriteSecondaryWeapon.name && (
+                              <img
+                                src={(() => {
+                                  const w = weapons.find(w => getWeaponDisplayData(w.type).name === favoriteEquipment.favoriteSecondaryWeapon.name);
+                                  return getWeaponDisplayData(w?.type).icon;
+                                })()}
+                                alt={favoriteEquipment.favoriteSecondaryWeapon.name}
+                                className="w-16 h-16 object-contain"
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* SubBoss */}
+                      <div className="flex flex-col bg-gradient-to-br from-[#171613] to-[#1a1814] border border-amber-800/30 rounded-xl p-4 shadow-lg hover:shadow-amber-900/10 transition-all duration-300 group hover:border-amber-700/40">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-amber-400 text-lg">👑</span>
+                          <span className="text-xs uppercase text-amber-300/70 tracking-wide font-medium">Favorite SubBoss</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-lg font-bold text-amber-100 group-hover:text-amber-50 transition-colors mb-1 block">
+                              {favoriteEquipment.favoriteSubBoss.name || "—"}
+                            </span>
+                            <span className="text-sm text-amber-400/70">
+                              {favoriteEquipment.favoriteSubBoss.kills?.toLocaleString() || "0"} kills
+                            </span>
+                          </div>
+                          <div className="w-20 h-12 bg-amber-900/20 rounded-lg flex items-center justify-center overflow-hidden">
+                            {favoriteEquipment.favoriteSubBoss.name && favoriteEquipment.favoriteSubBoss.name !== "Aucun" && (
+                              <img
+                                src={Object.values(SUBBOSS_CATEGORY.labels).find(b => b.name === favoriteEquipment.favoriteSubBoss.name)?.icon}
+                                alt={favoriteEquipment.favoriteSubBoss.name}
+                                className="w-16 h-16 object-cover rounded-sm"
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                )}
+
+                {/* SubBosses */}
+                {groupedEnemies.SUBBOSS?.enemies?.length > 0 && (
+                  <Card id="subboss" title="👑 Sub Bosses" defaultExpanded={false}>
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-red-900/10 to-amber-900/10 rounded-xl blur-sm"></div>
+                      <div className="relative bg-gradient-to-br from-[#2a1a0a] to-[#1a0f05] border-2 border-amber-500/50 rounded-xl p-5 shadow-2xl shadow-amber-900/30">
+                        <h3 className="text-amber-300 text-xl font-bold mb-4 pb-2 border-b border-amber-500/40 flex items-center gap-3">
+                          <span className="text-2xl">👑</span>
+                          {groupedEnemies.SUBBOSS.name}
+                          <span className="text-amber-400/70 text-sm font-normal ml-2">
+                            ({groupedEnemies.SUBBOSS.enemies.length} subbosses)
+                          </span>
+                        </h3>
+                        <DataTable
+                          headers={["SubBoss","Kills","Headshots","Executions","Deaths"]}
+                          data={groupedEnemies.SUBBOSS.enemies.map((e) => {
+                            const name = getSubBossDisplayName(e.type);
+                            const icon = SUBBOSS_CATEGORY.labels[e.type?.split("/")?.pop()]?.icon || "⚔️";
+                            return [
+                              <div className="flex items-center gap-2 relative group" key={e.type}>
+                                {String(icon).startsWith("http") ? (
+                                  <div className="relative">
+                                    <img src={icon} alt={name} className="w-6 h-6 object-cover rounded-sm cursor-help" />
+                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 pointer-events-none z-[100]">
+                                      <div className="bg-gradient-to-br from-[#1a1814] to-[#2a2824] border border-amber-600/50 rounded-lg p-3 shadow-2xl shadow-amber-900/20 backdrop-blur-sm">
+                                        <img src={icon} alt={name} className="w-24 h-24 object-cover rounded-sm drop-shadow-[0_0_8px_rgba(212,175,55,0.3)]" />
+                                        <div className="text-amber-200 text-xs text-center mt-2 font-medium bg-amber-900/20 px-2 py-1 rounded">{name}</div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : <span className="text-red-400">{icon}</span>}
+                                <span className="font-bold text-amber-200">{name}</span>
+                              </div>,
+                              e.kills?.toLocaleString() ?? "0",
+                              e.headshots?.toLocaleString() ?? "0",
+                              e.executions?.toLocaleString() ?? "0",
+                              e.deaths?.toLocaleString() ?? "0",
+                            ];
+                          })}
+                          className="border-amber-600/30"
+                          isBoss={true}
+                        />
+                      </div>
+                    </div>
+                  </Card>
+                )}
+
+                {/* Capacités */}
+                {Object.keys(groupedAbilities).length > 0 && (
+                  <Card id="abilities" title="Abilities" defaultExpanded={false}>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {GROUP_ORDER.filter(g => groupedAbilities[g]?.length)
+                        .map(group => (
+                          <div key={group} className="bg-gradient-to-br from-[#1a1814] to-[#1f1d18] border border-amber-800/30 rounded-xl p-4">
+                            <h3 className="text-amber-300 text-lg font-semibold mb-3 pb-2 border-b border-amber-800/40 flex items-center gap-2">
+                              {PACT_ICONS[group]
+                                ? (
+                                  <div className="relative group">
+                                    <img src={PACT_ICONS[group]} alt={group} className="w-6 h-6 object-contain rounded-sm drop-shadow-[0_0_4px_rgba(255,200,100,0.2)] transition-all duration-300 group-hover:scale-125 cursor-help"/>
+                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 pointer-events-none z-[9999]">
+                                      <div className="bg-gradient-to-br from-[#1a1814] to-[#2a2824] border border-amber-600/50 rounded-lg p-3 shadow-2xl shadow-amber-900/20 backdrop-blur-sm">
+                                        <img src={PACT_ICONS[group]} alt={group} className="w-20 h-20 object-contain" />
+                                        <div className="text-amber-200 text-xs text-center mt-2 font-medium bg-amber-900/20 px-2 py-1 rounded">{group}</div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : <span className="text-amber-400">⚜</span>}
+                              {group}
+                            </h3>
+                            <div className="space-y-2">
+                              {groupedAbilities[group].map((ab, i) => (
+                                <div key={i} className="flex items-center justify-between bg-amber-900/10 hover:bg-amber-800/20 rounded-lg px-3 py-2 transition-all duration-300 group">
+                                  <div className="flex items-center gap-2">
+                                    {ab.icon && (String(ab.icon).startsWith("http")
+                                      ? (
+                                        <div className="relative group">
+                                          <img src={ab.icon} alt={ab.name} className="w-6 h-6 object-contain rounded-sm drop-shadow-[0_0_4px_rgba(255,200,100,0.2)] transition-all duration-300 group-hover:scale-110 group-hover:brightness-110 cursor-help"/>
+                                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 pointer-events-none z-[9999]">
+                                            <div className="bg-gradient-to-br from-[#1a1814] to-[#2a2824] border border-amber-600/50 rounded-lg p-3 shadow-2xl shadow-amber-900/20 backdrop-blur-sm">
+                                              <img src={ab.icon} alt={ab.name} className="w-16 h-16 object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.3)]" loading="lazy"/>
+                                              <div className="text-amber-200 text-xs text-center mt-2 font-medium bg-amber-900/20 px-2 py-1 rounded">{ab.name}</div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )
+                                      : <span className="text-amber-400/80 text-lg">{ab.icon}</span>
+                                    )}
+                                    <span className="text-amber-200 font-medium group-hover:text-amber-100">{ab.name}</span>
+                                  </div>
+                                  <span className="text-amber-400 bg-amber-900/30 px-2 py-1 rounded text-xs font-medium">
+                                    {ab.used?.toLocaleString?.() ?? 0} uses
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </Card>
+                )}
+
+                {/* Armes */}
+                {weapons.length > 0 && (
+                  <Card id="weapons" title="Weapons" defaultExpanded={false}>
+                    <div className="space-y-8">
+                      {/* Principales */}
+                      {Object.keys(groupedWeapons.main).length > 0 && (
+                        <div className="bg-gradient-to-br from-[#1a1814] to-[#1f1d18] border border-amber-800/30 rounded-xl p-4">
+                          <h3 className="text-amber-300 text-lg font-semibold mb-3 pb-2 border-b border-amber-800/40 flex items-center gap-2">
+                            <span className="text-amber-400">⚔️</span> Armes principales
+                          </h3>
+                          <div className="space-y-6">
+                            {Object.entries(groupedWeapons.main).map(([groupName, arr]) => (
+                              <div key={groupName}>
+                                <h4 className="text-amber-400 text-md font-medium mb-3 flex items-center gap-2">
+                                  <span>•</span> {groupName}
+                                  <span className="text-amber-400/60 text-sm font-normal">({arr.length})</span>
+                                </h4>
+                                <DataTable
+                                  headers={["Weapon","Kills","Temps équipé","Headshots","Assists","XP"]}
+                                  data={arr.map(w => {
+                                    const d = getWeaponDisplayData(w.type);
+                                    return [
+                                      <div className="flex items-center gap-2 relative group" key={w.type}>
+                                        <div className="w-8 h-8 flex items-center justify-center bg-amber-900/20 rounded-sm overflow-hidden">
+                                          <img src={d.icon} alt={d.name} className="w-7 h-7 object-scale-down transition-all duration-300 group-hover:scale-110 cursor-help group-hover:brightness-110 group-hover:contrast-110" style={{transform:'scale(0.8)', transformOrigin:'center'}}/>
+                                        </div>
+                                        <div className="absolute bottom-full left-0 transform translate-x-2 mb-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 z-[9999] pointer-events-none">
+                                          <div className="bg-gradient-to-br from-[#1a1814] to-[#2a2824] border border-amber-600/50 rounded-lg p-3 shadow-2xl shadow-amber-900/20 backdrop-blur-sm">
+                                            <img src={d.icon} alt={d.name} className="w-24 h-24 object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.3)]" loading="lazy"/>
+                                            <div className="text-amber-200 text-xs text-center mt-2 font-medium bg-amber-900/20 px-2 py-1 rounded">{d.name}</div>
+                                          </div>
+                                        </div>
+                                        <span>{d.name}</span>
+                                      </div>,
+                                      w.kills?.toLocaleString() ?? "0",
+                                      w.equipTime ? `${(w.equipTime/3600).toFixed(1)} h` : "—",
+                                      w.headshots?.toLocaleString() ?? "0",
+                                      w.assists?.toLocaleString() ?? "0",
+                                      w.xp ? formatXP(w.xp) : "0"
+                                    ];
+                                  })}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Secondaires */}
+                      {Object.keys(groupedWeapons.secondary).length > 0 && (
+                        <div className="bg-gradient-to-br from-[#1a1814] to-[#1f1d18] border border-amber-800/30 rounded-xl p-4">
+                          <h3 className="text-amber-300 text-lg font-semibold mb-3 pb-2 border-b border-amber-800/40 flex items-center gap-2">
+                            <span className="text-amber-400">🗡️</span> Armes secondaires
+                          </h3>
+                          <div className="space-y-6">
+                            {Object.entries(groupedWeapons.secondary).map(([groupName, arr]) => (
+                              <div key={groupName}>
+                                <h4 className="text-amber-400 text-md font-medium mb-3 flex items-center gap-2">
+                                  <span>•</span> {groupName}
+                                  <span className="text-amber-400/60 text-sm font-normal">({arr.length})</span>
+                                </h4>
+                                <DataTable
+                                  headers={["Weapon","Kills","Temps équipé","Headshots","Assists","XP"]}
+                                  data={arr.map(w => {
+                                    const d = getWeaponDisplayData(w.type);
+                                    return [
+                                      <div className="flex items-center gap-2 relative group" key={w.type}>
+                                        <div className="w-8 h-8 flex items-center justify-center bg-amber-900/20 rounded-sm overflow-hidden">
+                                          <img src={d.icon} alt={d.name} className="w-7 h-7 object-scale-down transition-all duration-300 group-hover:scale-110 cursor-help group-hover:brightness-110 group-hover:contrast-110" style={{transform:'scale(0.8)', transformOrigin:'center'}}/>
+                                        </div>
+                                        <div className="absolute bottom-full left-0 transform translate-x-2 mb-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 z-[9999] pointer-events-none">
+                                          <div className="bg-gradient-to-br from-[#1a1814] to-[#2a2824] border border-amber-600/50 rounded-lg p-3 shadow-2xl shadow-amber-900/20 backdrop-blur-sm">
+                                            <img src={d.icon} alt={d.name} className="w-24 h-24 object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.3)]" loading="lazy"/>
+                                            <div className="text-amber-200 text-xs text-center mt-2 font-medium bg-amber-900/20 px-2 py-1 rounded">{d.name}</div>
+                                          </div>
+                                        </div>
+                                        <span>{d.name}</span>
+                                      </div>,
+                                      w.kills?.toLocaleString() ?? "0",
+                                      w.equipTime ? `${(w.equipTime/3600).toFixed(1)} h` : "—",
+                                      w.headshots?.toLocaleString() ?? "0",
+                                      w.assists?.toLocaleString() ?? "0",
+                                      w.xp ? formatXP(w.xp) : "0"
+                                    ];
+                                  })}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Inconnues */}
+                      {groupedWeapons.unknown.length > 0 && (
+                        <div className="bg-gradient-to-br from-[#1a1814] to-[#1f1d18] border border-amber-800/30 rounded-xl p-4">
+                          <h3 className="text-amber-300 text-lg font-semibold mb-3 pb-2 border-b border-amber-800/40 flex items-center gap-2">
+                            <span className="text-amber-400">❓</span> Autres armes
+                            <span className="text-amber-400/60 text-sm font-normal ml-2">({groupedWeapons.unknown.length})</span>
+                          </h3>
+                          <DataTable
+                            headers={["Weapon","Kills","Temps équipé","Headshots","Assists","XP"]}
+                            data={groupedWeapons.unknown.map(w => [
+                              <div className="flex items-center gap-2" key={w.type}>
+                                <span>❓</span>
+                                <span>{w.type?.split("/")?.pop()}</span>
+                              </div>,
+                              w.kills?.toLocaleString() ?? "0",
+                              w.equipTime ? `${(w.equipTime/3600).toFixed(1)} h` : "—",
+                              w.headshots?.toLocaleString() ?? "0",
+                              w.assists?.toLocaleString() ?? "0",
+                              w.xp ? formatXP(w.xp) : "0"
+                            ])}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                )}
+
+                {/* Ennemis */}
+                {enemies.length > 0 && (
+                  <Card id="enemies" title="Enemies" defaultExpanded={false}>
+                    {/* Compendium */}
+                    <Card id="enemy-compendium" title="📖 Enemy Compendium" defaultExpanded={false}>
+                      <DataTable
+                        headers={["Enemy","Faction","Biome","Type","Kills","Headshots","Executions"]}
+                        data={enrichedEnemies.map(e => [
+                          <div className="flex items-center gap-2 relative group" key={e.id}>
+                            {e.icon ? (
+                              <>
+                                <img src={e.icon} alt={e.name} className="w-6 h-6 rounded-sm object-cover" />
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 pointer-events-none z-[9999]">
+                                  <div className="bg-gradient-to-br from-[#1a1814] to-[#2a2824] border border-amber-600/50 rounded-lg p-3 shadow-2xl shadow-amber-900/20 backdrop-blur-sm">
+                                    <img src={e.icon} alt={e.name} className="w-24 h-24 rounded-sm object-cover" />
+                                    <div className="text-amber-200 text-xs text-center mt-2 bg-amber-900/20 px-2 py-1 rounded">{e.name}</div>
+                                  </div>
+                                </div>
+                              </>
+                            ) : <span className="text-amber-400">⚔️</span>}
+                            <span className="font-medium">{e.name}</span>
+                          </div>,
+                          e.faction, e.biome, e.category,
+                          e.kills?.toLocaleString() ?? "0",
+                          e.headshots?.toLocaleString() ?? "0",
+                          e.executions?.toLocaleString() ?? "0",
+                        ])}
+                      />
+                    </Card>
+
+                    {/* Autres groupes */}
+                    <div className="space-y-8">
+                      {Object.entries(groupedEnemies)
+                        .filter(([key, grp]) => key !== "SUBBOSS" && grp.enemies.length > 0)
+                        .map(([key, grp]) => (
+                          <div key={key} className="bg-gradient-to-br from-[#1a1814] to-[#1f1d18] border border-amber-800/30 rounded-xl p-4">
+                            <h3 className="text-amber-300 text-lg font-semibold mb-3 pb-2 border-b border-amber-800/40 flex items-center gap-2">
+                              <span className="text-amber-400">⚔️</span> {grp.name}
+                              <span className="text-amber-400/60 text-sm font-normal ml-2">({grp.enemies.length})</span>
+                            </h3>
+                            <DataTable
+                              headers={["Enemy","Kills","Headshots","Executions","Deaths"]}
+                              data={grp.enemies.map((e, idx) => [
+                                <div className="flex items-center gap-2" key={idx}>
+                                  <span>⚔️</span>
+                                  <span>{e.type?.split("/")?.pop()}</span>
+                                </div>,
+                                e.kills?.toLocaleString() ?? "0",
+                                e.headshots?.toLocaleString() ?? "0",
+                                e.executions?.toLocaleString() ?? "0",
+                                e.deaths?.toLocaleString() ?? "0",
+                              ])}
+                            />
+                          </div>
+                        ))}
+                    </div>
+                  </Card>
+                )}
+              </div>
+            </div>
+
+            {/* --- Voile de transition --- */}
+            {isTransitioning && (
+              <div className="transition-veil" aria-hidden="true">
+                <div className="transition-logo">
+                  <img
+                    src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/logoV1big.png"
+                    alt="Soulframe Tracker"
+                  />
+                </div>
+              </div>
+            )}
+          </main>
+
+          {/* ===== Footer (légal + disclaimer fanmade) ===== */}
+          <footer className="relative z-40 border-t border-amber-900/20 bg-[#0a0a08]/50 py-6 mt-12">
+            <div className="max-w-7xl mx-auto px-4 text-center text-amber-400/60 text-sm">
+              <p>Soulframe Data Tracker • Données récupérées depuis l'API officielle</p>
+              <div className="text-center text-amber-500/40 text-xs">
+                <p className="mb-2">
+                  Soulframe™ est une marque déposée de <strong>Digital Extremes Ltd.</strong><br />
+                  Ce site est un outil de suivi créé par des fans et n'est pas affilié à Digital Extremes.<br />
+                  Tous les droits des assets multimédias reviennent à leurs propriétaires respectifs.
+                </p>
+              </div>
+            </div>
+          </footer>
+        </div>
+      );
+    };
+
+    /* =========================================================
+       Render React
+       ========================================================= */
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
