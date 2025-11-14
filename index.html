@@ -39,9 +39,9 @@ Date: 2025-11-13 | Version: 0.1.0
 
   <!-- ===== Styles globaux ===== -->
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;600;700&display=swap');
 
-    /* === Fond + typo === */
+    /* === Fond + typo (bois sombre + voile léger) === */
     body{
       background-image:
         linear-gradient(to bottom right, rgba(13,13,11,.8), rgba(18,18,16,.8), rgba(10,10,8,.8)),
@@ -52,11 +52,11 @@ Date: 2025-11-13 | Version: 0.1.0
       background-repeat: no-repeat;
       margin: 0;
       min-height: 100vh;
-      font-family: 'Cormorant Garamond', serif;
+      font-family: 'Merriweather', serif;
       color-scheme: dark;
     }
 
-    /* === Bouton musique === */
+    /* === Bouton musique (image seule, sans cercle ni fond) === */
     .music-control {
       position: fixed; bottom: 20px; right: 20px; z-index: 1000;
       background: transparent !important;
@@ -163,6 +163,106 @@ Date: 2025-11-13 | Version: 0.1.0
       50%{opacity:1; transform:scale(2)}
       100%{opacity:.95; transform:scale(1.985)}
     }
+    h1, h2, h3, .font-serif {
+     font-family: 'Merriweather', serif !important;
+    }
+   /* ===== Player Information : parchemin + cadres PNG ===== */
+
+    /* Grand parchemin de la section */
+    .player-info-wrapper {
+      position: relative;
+      margin-top: 0.5rem;
+      padding: 32px 40px 36px;
+      background-image: url('https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/parchemin_cat%C3%A9gorie.png');
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      background-position: center top;
+    }
+
+    @media (max-width: 768px) {
+      .player-info-wrapper {
+        padding: 24px 16px 28px;
+        background-size: cover;
+      }
+    }
+
+    /* Grand cadre pour l’orbe de MR + pseudo */
+    .pi-mr-frame {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 22px 32px;
+      background-image: url('https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/carde_large.png');
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      background-position: center;
+      min-height: 150px;
+    }
+
+    .pi-mr-orb {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .pi-mr-orb img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* Petites cartes (time played, etc.) dans cadre_minicarts */
+    .frame-mini {
+      position: relative;
+      width: 270px;
+      min-height: 90px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 24px;
+      background-image: url('https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/cadre_minicarts.png');
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    @media (max-width: 768px) {
+      .frame-mini {
+        width: 100%;
+      }
+    }
+
+    .frame-mini-icon {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Cadre large pour Factions Progress */
+    .frame-large {
+      position: relative;
+      margin-top: 32px;
+      padding: 24px 32px 30px;
+      background-image: url('https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/carde_large.png');
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    @media (max-width: 768px) {
+      .frame-large {
+        padding: 20px 16px 24px;
+      }
+    }
+
   </style>
 </head>
 
@@ -295,6 +395,35 @@ Date: 2025-11-13 | Version: 0.1.0
         </div>
       );
     };
+    /* =========================================================
+       MiniStatCard — petite carte stat sur cadre_minicarts
+       (je laisse le PNG à sa taille, je pose juste le contenu dessus)
+       ========================================================= */
+    const MiniStatCard = ({ label, value, icon }) => (
+      <div className="relative inline-block">
+        {/* Image du cadre : taille native => pas de déformation */}
+        <img
+          src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/cadre_minicarts.png"
+          alt=""
+          className="block max-w-none select-none pointer-events-none"
+        />
+
+        {/* Contenu par-dessus le cadre */}
+        <div className="absolute inset-0 flex items-center gap-3 px-6">
+          <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
+            {icon}
+          </div>
+          <div className="leading-tight">
+            <div className="text-[11px] tracking-[0.16em] uppercase text-amber-300/80">
+              {label}
+            </div>
+            <div className="text-lg md:text-xl font-bold text-amber-100 mt-1 whitespace-nowrap">
+              {value}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
 
     /* =========================================================
        DataTable — tableau générique
@@ -571,7 +700,7 @@ Date: 2025-11-13 | Version: 0.1.0
         }
       }
 
-      /* --- Lore : charge le JSON et cycle tant que pas connecté --- */
+      /* --- Lore : je charge le JSON et je cycle tant que pas connecté --- */
       useEffect(() => {
   if (payload) return;
   let timer;
@@ -584,7 +713,7 @@ Date: 2025-11-13 | Version: 0.1.0
         listEN = Array.from(new Set(listEN.map(s => (typeof s === "string" ? s.trim() : "")).filter(Boolean)));
       } else listEN = [];
 
-      // FR (même structure,fichier lore_fr.json)
+      // FR (même structure, si tu fournis un fichier lore_fr.json)
       let listFR = [];
       try {
         const resFR = await fetch(LORE_URL.replace("lore.json", "lore_fr.json"));
@@ -762,7 +891,8 @@ Date: 2025-11-13 | Version: 0.1.0
          Rendu
          =========================== */
       return (
-        <div className="min-h-screen flex flex-col text-amber-100 font-[Cormorant_Garamond] selection:bg-amber-500/20">
+        <div className="min-h-screen flex flex-col text-amber-100 font-[Merriweather] selection:bg-amber-500/20">
+
           {/* ===== Header sticky (après chargement) ===== */}
           {payload && (
             <nav className="sticky top-0 z-50 backdrop-blur-md bg-[#12120f]/90 border-b border-amber-900/40 shadow-2xl shadow-amber-900/10" aria-label="Navigation des sections">
@@ -799,21 +929,42 @@ Date: 2025-11-13 | Version: 0.1.0
                     </div>
                   </div>
 
-                  {/* Miroir visuel */}
-                  <div className="flex items-center gap-3 opacity-0 pointer-events-none select-none" aria-hidden="true">
-                    <div className="w-[72px] h-[72px] rounded-lg overflow-hidden">
-                      <img
-                        src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/logoV1big.png"
-                        alt=""
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <img
-                      src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/Soulframe_Tracker_name.png"
-                      alt=""
-                      className="h-14 object-contain mt-4"
-                    />
-                  </div>
+                 {/* --- BOUTON RETOUR ou MIROIR VISUEL --- */}
+{view === "PS" ? (
+  <div className="flex items-center justify-end">
+    <button
+      onClick={() => {
+        setView("PA");
+        setPayload(null);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }}
+      className="w-14 h-14 flex items-center justify-center rounded-full hover:scale-105 transition-transform duration-300"
+      title="Retour à l'accueil"
+    >
+      <img
+        src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/Retour.png"
+        alt="Retour"
+        className="w-12 h-12 object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.4)] hover:drop-shadow-[0_0_12px_rgba(212,175,55,0.6)] transition-all duration-300"
+      />
+    </button>
+  </div>
+) : (
+  <div className="flex items-center gap-3 opacity-0 pointer-events-none select-none" aria-hidden="true">
+    <div className="w-[72px] h-[72px] rounded-lg overflow-hidden">
+      <img
+        src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/logoV1big.png"
+        alt=""
+        className="w-full h-full object-contain"
+      />
+    </div>
+    <img
+      src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/Soulframe_Tracker_name.png"
+      alt=""
+      className="h-14 object-contain mt-4"
+    />
+  </div>
+)}
+
                 </div>
               </div>
             </nav>
@@ -899,7 +1050,7 @@ Date: 2025-11-13 | Version: 0.1.0
                       </div>
                     </div>
 
-                    {/* "?" à droite */}
+                    {/* Petit "?" à droite, en dehors de la barre */}
 <div className="flex items-center">
   <div
     className="relative"
@@ -1007,173 +1158,340 @@ Date: 2025-11-13 | Version: 0.1.0
             id="PS"
             aria-hidden={view !== "PS"}
           >
-            {/* Player Information */}
+            {/* ======================== PLAYER INFORMATION ======================== */}
             <Card id="player" title="Player Information">
-              {/* === ORB MR + PLAYER NAME === */}
-              <div className="flex items-center gap-3 mb-10">
-                <div
-                  className="relative flex items-center justify-center"
-                  style={{ width: "200px", height: "200px" }}
-                >
-                  <img
-                    src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/Sphere_MR%20.png"
-                    alt="Mastery Orb"
-                    className="absolute inset-0 w-full h-full object-contain drop-shadow-[0_0_15px_rgba(212,175,55,0.15)]"
-                  />
-                  <span className="relative z-10 text-6xl font-bold text-amber-200 drop-shadow-[0_0_8px_rgba(212,175,55,0.35)] select-none">
-                    {playerInfo?.mastery ?? "—"}
-                  </span>
-                </div>
+              {/* Parchemin en fond pour toute la section */}
+              <div className="relative rounded-2xl overflow-hidden">
 
-                <div className="flex flex-col justify-center">
-                  <span className="text-4xl font-serif font-bold text-amber-100 tracking-wide drop-shadow-[0_0_6px_rgba(212,175,55,0.25)]">
-                    {playerInfo?.name ?? "—"}
-                  </span>
+
+                {/* Contenu posé par-dessus le parchemin */}
+                <div className="relative z-10 p-6 sm:p-8 lg:p-10 flex flex-col gap-10">
+
+                  {/* ------------------------------------------------------------------
+                     1) MR + Account Name + 4 petites cartes stats
+                     ------------------------------------------------------------------ */}
+                  <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 items-stretch">
+
+                    {/* === Bloc MR + pseudo (frame "maison") === */}
+                    <div className="w-full lg:w-[420px]">
+                      <div
+                        className="
+                          relative
+                          bg-[#0b0a08]/90
+                          border border-amber-700/70
+                          rounded-xl
+                          shadow-[0_0_22px_rgba(0,0,0,0.85)]
+                          px-6 py-5
+                          flex items-center gap-6
+                        "
+                      >
+                        {/* bordure dorée interne */}
+                        <div className="absolute inset-1 rounded-lg border-2 border-amber-400/70 pointer-events-none" />
+
+                        {/* Sphère MR */}
+                        <div
+                          className="relative flex items-center justify-center"
+                          style={{ width: "140px", height: "140px" }}
+                        >
+                          <img
+                            src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/Sphere_MR%20.png"
+                            alt="Mastery Rank"
+                            className="absolute inset-0 w-full h-full object-contain drop-shadow-[0_0_18px_rgba(212,175,55,0.45)] select-none pointer-events-none"
+                          />
+                          <span className="relative z-10 text-5xl font-bold text-amber-50 drop-shadow-[0_0_10px_rgba(0,0,0,0.95)] select-none">
+                            {playerInfo?.mastery ?? "—"}
+                          </span>
+                        </div>
+
+                        {/* Nom de compte */}
+                        <div className="flex-1">
+                          <div className="text-[11px] tracking-[0.18em] uppercase text-amber-300/75 mb-1">
+                            Account Name
+                          </div>
+                          <div className="text-3xl font-serif font-bold text-amber-50 drop-shadow-[0_0_10px_rgba(0,0,0,0.9)] break-words">
+                            {playerInfo?.name ?? "—"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* === 4 mini-cards stats, même frame plus compacte === */}
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+
+                      {/* Time Played */}
+                      <div
+                        className="
+                          relative
+                          bg-[#0b0a08]/90
+                          border border-amber-700/70
+                          rounded-xl
+                          shadow-[0_0_18px_rgba(0,0,0,0.8)]
+                          px-5 py-4
+                          flex items-center gap-3
+                        "
+                      >
+                        <div className="absolute inset-1 rounded-lg border border-amber-400/70 pointer-events-none" />
+                        <div className="relative z-10 flex items-center gap-3">
+                          <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                              <circle cx="12" cy="12" r="8" stroke="#CDAF55" strokeWidth="1.7" />
+                              <path
+                                d="M12 7v5l3 2"
+                                stroke="#E5D7A2"
+                                strokeWidth="1.6"
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                          </div>
+                          <div className="leading-tight">
+                            <div className="text-[11px] tracking-[0.16em] uppercase text-amber-300/80">
+                              TIME PLAYED
+                            </div>
+                            <div className="text-lg font-bold text-amber-50 mt-1">
+                              {playerInfo?.timePlayedH ?? "—"}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Account Created */}
+                      <div
+                        className="
+                          relative
+                          bg-[#0b0a08]/90
+                          border border-amber-700/70
+                          rounded-xl
+                          shadow-[0_0_18px_rgba(0,0,0,0.8)]
+                          px-5 py-4
+                          flex items-center gap-3
+                        "
+                      >
+                        <div className="absolute inset-1 rounded-lg border border-amber-400/70 pointer-events-none" />
+                        <div className="relative z-10 flex items-center gap-3">
+                          <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                              <rect
+                                x="4"
+                                y="5"
+                                width="16"
+                                height="14"
+                                rx="2"
+                                stroke="#CDAF55"
+                                strokeWidth="1.7"
+                              />
+                              <path d="M4 9h16" stroke="#E5D7A2" strokeWidth="1.3" />
+                              <path
+                                d="M8 3v4M16 3v4"
+                                stroke="#E5D7A2"
+                                strokeWidth="1.3"
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                          </div>
+                          <div className="leading-tight">
+                            <div className="text-[11px] tracking-[0.16em] uppercase text-amber-300/80">
+                              ACCOUNT CREATED
+                            </div>
+                            <div className="text-lg font-bold text-amber-50 mt-1">
+                              {playerInfo?.created ?? "—"}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Items Collected */}
+                      <div
+                        className="
+                          relative
+                          bg-[#0b0a08]/90
+                          border border-amber-700/70
+                          rounded-xl
+                          shadow-[0_0_18px_rgba(0,0,0,0.8)]
+                          px-5 py-4
+                          flex items-center gap-3
+                        "
+                      >
+                        <div className="absolute inset-1 rounded-lg border border-amber-400/70 pointer-events-none" />
+                        <div className="relative z-10 flex items-center gap-3">
+                          <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                              <path
+                                d="M4 15l8-10 8 10H4z"
+                                stroke="#CDAF55"
+                                strokeWidth="1.7"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </div>
+                          <div className="leading-tight">
+                            <div className="text-[11px] tracking-[0.16em] uppercase text-amber-300/80">
+                              ITEMS COLLECTED
+                            </div>
+                            <div className="text-lg font-bold text-amber-50 mt-1">
+                              {playerInfo?.pickupCount ?? "—"}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Total Dracs */}
+                      <div
+                        className="
+                          relative
+                          bg-[#0b0a08]/90
+                          border border-amber-700/70
+                          rounded-xl
+                          shadow-[0_0_18px_rgba(0,0,0,0.8)]
+                          px-5 py-4
+                          flex items-center gap-3
+                        "
+                      >
+                        <div className="absolute inset-1 rounded-lg border border-amber-400/70 pointer-events-none" />
+                        <div className="relative z-10 flex items-center gap-3">
+                          <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                              <circle cx="12" cy="12" r="8" stroke="#CDAF55" strokeWidth="1.7" />
+                              <path
+                                d="M8 12h8"
+                                stroke="#E5D7A2"
+                                strokeWidth="1.6"
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                          </div>
+                          <div className="leading-tight">
+                            <div className="text-[11px] tracking-[0.16em] uppercase text-amber-300/80">
+                              TOTAL DRACS
+                            </div>
+                            <div className="text-lg font-bold text-amber-50 mt-1">
+                              {playerInfo?.income ?? "—"}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ------------------------------------------------------------------
+                     2) Factions Progress — même type de frame
+                     ------------------------------------------------------------------ */}
+                  <div className="mt-2">
+                    <div
+                      className="
+                        relative
+                        bg-[#0b0a08]/90
+                        border border-amber-700/70
+                        rounded-xl
+                        shadow-[0_0_22px_rgba(0,0,0,0.85)]
+                        px-6 sm:px-8 py-5
+                      "
+                    >
+                      <div className="absolute inset-1 rounded-lg border-2 border-amber-400/70 pointer-events-none" />
+
+                      <div className="relative z-10">
+                        {/* Titre */}
+                        <div className="text-center mb-5">
+                          <span className="text-amber-200 text-lg font-semibold tracking-wide">
+                            Factions Progress
+                          </span>
+                        </div>
+
+                        {/* Barres */}
+                        <div className="space-y-5 text-xs sm:text-sm">
+                          {/* Kith of King */}
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-amber-200 flex items-center gap-2">
+                                Kith of King
+                                <span
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ background: "#a83b3b" }}
+                                ></span>
+                              </span>
+                              <span className="text-amber-300">
+                                {(playerInfo?.championStanding ?? 0).toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="h-2 rounded-full bg-[#2b2114] overflow-hidden">
+                              <div
+                                className="h-full rounded-full"
+                                style={{
+                                  width: `${Math.min(
+                                    ((playerInfo?.championStanding ?? 0) / 30000) * 100,
+                                    100
+                                  )}%`,
+                                  background:
+                                    "linear-gradient(to right, #E1C172, #C7A053)",
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+
+                          {/* Alca Children */}
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-amber-200 flex items-center gap-2">
+                                Alca Children
+                                <span
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ background: "#5e8b5e" }}
+                                ></span>
+                              </span>
+                              <span className="text-amber-300">
+                                {(playerInfo?.feyStanding ?? 0).toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="h-2 rounded-full bg-[#2b2114] overflow-hidden">
+                              <div
+                                className="h-full rounded-full"
+                                style={{
+                                  width: `${Math.min(
+                                    ((playerInfo?.feyStanding ?? 0) / 30000) * 100,
+                                    100
+                                  )}%`,
+                                  background:
+                                    "linear-gradient(to right, #E1C172, #C7A053)",
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+
+                          {/* The Silent Rose */}
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-amber-200 flex items-center gap-2">
+                                The Silent Rose
+                                <span
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ background: "#4a6b9c" }}
+                                ></span>
+                              </span>
+                              <span className="text-amber-300">
+                                {(playerInfo?.silentRoseStanding ?? 0).toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="h-2 rounded-full bg-[#2b2114] overflow-hidden">
+                              <div
+                                className="h-full rounded-full"
+                                style={{
+                                  width: `${Math.min(
+                                    ((playerInfo?.silentRoseStanding ?? 0) / 30000) * 100,
+                                    100
+                                  )}%`,
+                                  background:
+                                    "linear-gradient(to right, #E1C172, #C7A053)",
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
               </div>
-
-              {/* === STATS PRINCIPALES === */}
-            
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Time Played */}
-                    <div className="flex items-center gap-4 p-5 rounded-2xl bg-[#0a0a09]/70 backdrop-blur-sm 
-                                    shadow-[0_0_20px_rgba(212,175,55,0.1)] border border-amber-900/20">
-                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
-                        className="text-amber-300 drop-shadow-[0_0_5px_rgba(212,175,55,0.25)]">
-                        <circle cx="12" cy="12" r="9" stroke="#CDAF55" strokeWidth="1.8"/>
-                        <path d="M12 7v5l3 2" stroke="#E5D7A2" strokeWidth="1.6" strokeLinecap="round"/>
-                      </svg>
-                      <div>
-                        <span className="text-amber-300/80 text-sm uppercase">Time Played</span>
-                        <div className="text-2xl font-bold text-amber-100">
-                          {playerInfo?.timePlayedH ?? "—"}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Account Created */}
-                    <div className="flex items-center gap-4 p-5 rounded-2xl bg-[#0a0a09]/70 backdrop-blur-sm 
-                                    shadow-[0_0_20px_rgba(212,175,55,0.1)] border border-amber-900/20">
-                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
-                        className="text-amber-300 drop-shadow-[0_0_5px_rgba(212,175,55,0.25)]">
-                        <rect x="4" y="5" width="16" height="15" rx="2" stroke="#CDAF55" strokeWidth="1.8"/>
-                        <path d="M4 9h16" stroke="#E5D7A2" strokeWidth="1.4"/>
-                        <path d="M8 3v4M16 3v4" stroke="#E5D7A2" strokeWidth="1.4" strokeLinecap="round"/>
-                      </svg>
-                      <div>
-                        <span className="text-amber-300/80 text-sm uppercase">Account Created</span>
-                        <div className="text-2xl font-bold text-amber-100">
-                          {playerInfo?.created ?? "—"}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* === STATS SECONDAIRES === */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                    {/* ITEMS COLLECTED (fix: j’utilise bien les stats de l’API) */}
-                    <div className="flex items-center gap-4 p-5 rounded-2xl bg-[#0a0a09]/70 backdrop-blur-sm 
-                                    shadow-[0_0_20px_rgba(212,175,55,0.1)] border border-amber-900/20">
-                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
-                        className="text-amber-300 drop-shadow-[0_0_5px_rgba(212,175,55,0.25)]">
-                        <path d="M4 15l8-10 8 10H4z" stroke="#CDAF55" strokeWidth="1.8"/>
-                      </svg>
-                      <div>
-                        <span className="text-amber-300/80 text-sm uppercase">Items Collected</span>
-                        <div className="text-2xl font-bold text-amber-100">
-                          {playerInfo?.pickupCount ?? "—"}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* TOTAL DRACS */}
-                    <div className="flex items-center gap-4 p-5 rounded-2xl bg-[#0a0a09]/70 backdrop-blur-sm 
-                                    shadow-[0_0_20px_rgba(212,175,55,0.1)] border border-amber-900/20">
-                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
-                        className="text-amber-300 drop-shadow-[0_0_5px_rgba(212,175,55,0.25)]">
-                        <circle cx="12" cy="12" r="9" stroke="#CDAF55" strokeWidth="1.8"/>
-                        <path d="M8 12h8" stroke="#E5D7A2" strokeWidth="1.6" strokeLinecap="round"/>
-                      </svg>
-                      <div>
-                        <span className="text-amber-300/80 text-sm uppercase">Total Dracs</span>
-                        <div className="text-2xl font-bold text-amber-100">
-                          {playerInfo?.income ?? "—"}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* === FACTIONS === */}
-                  <div className="mt-12 pt-6 border-t border-amber-900/30">
-                    <h3 className="text-amber-300 text-lg font-semibold mb-5">Factions Progress</h3>
-
-                    <div className="space-y-7">
-                      {/* Champion */}
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-amber-200 text-sm flex items-center gap-2">
-                            Kith of King
-                            <span className="w-3 h-3 rounded-full" style={{background:"#a83b3b"}}></span>
-                          </span>
-                          <span className="text-amber-300 text-sm">
-                            {(playerInfo?.championStanding ?? 0).toLocaleString()}
-                          </span>
-                        </div>
-
-                        <div className="h-3 rounded-full bg-amber-900/20 overflow-hidden">
-                          <div className="h-full rounded-full transition-all duration-700"
-                            style={{
-                              width: `${Math.min(((playerInfo?.championStanding ?? 0) / 30000) * 100, 100)}%`,
-                              background: "linear-gradient(to right, #E1C172, #C7A053)"
-                            }}></div>
-                        </div>
-                      </div>
-
-                      {/* Fey */}
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-amber-200 text-sm flex items-center gap-2">
-                            Alca Children
-                            <span className="w-3 h-3 rounded-full" style={{background:"#5e8b5e"}}></span>
-                          </span>
-                          <span className="text-amber-300 text-sm">
-                            {(playerInfo?.feyStanding ?? 0).toLocaleString()}
-                          </span>
-                        </div>
-
-                        <div className="h-3 rounded-full bg-amber-900/20 overflow-hidden">
-                          <div className="h-full rounded-full transition-all duration-700"
-                            style={{
-                              width: `${Math.min(((playerInfo?.feyStanding ?? 0) / 30000) * 100, 100)}%`,
-                              background: "linear-gradient(to right, #E1C172, #C7A053)"
-                            }}></div>
-                        </div>
-                      </div>
-
-                      {/* Silent Rose */}
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-amber-200 text-sm flex items-center gap-2">
-                            The Silent Rose
-                            <span className="w-3 h-3 rounded-full" style={{background:"#4a6b9c"}}></span>
-                          </span>
-                          <span className="text-amber-300 text-sm">
-                            {(playerInfo?.silentRoseStanding ?? 0).toLocaleString()}
-                          </span>
-                        </div>
-
-                        <div className="h-3 rounded-full bg-amber-900/20 overflow-hidden">
-                          <div className="h-full rounded-full transition-all duration-700"
-                            style={{
-                              width: `${Math.min(((playerInfo?.silentRoseStanding ?? 0) / 30000) * 100, 100)}%`,
-                              background: "linear-gradient(to right, #E1C172, #C7A053)"
-                            }}></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-
+            </Card>
                 {/* Favoris */}
                 {favoriteEquipment && (
                   <Card id="favorite-equipment" title="⭐ Favorite Equipment">
