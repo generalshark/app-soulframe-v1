@@ -1,4 +1,4 @@
-// soulframe-stats-module.js - Version CORRIGÉE
+// soulframe-stats-module.js
 window.SoulframeStats = (function() {
     'use strict';
     
