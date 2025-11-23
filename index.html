@@ -1897,7 +1897,16 @@ Date: 2025-11-23 | Version: 0.2.0
       const [updateMessage, setUpdateMessage] = useState("");
       const [activeTab, setActiveTab] = useState("player");
       const [openEnemyPanel, setOpenEnemyPanel] = useState("index");
-      
+      // Auto-dismiss du toast de mise à jour
+    useEffect(() => {
+    if (!updateMessage) return;
+    // Durée différente selon succès/erreur
+    const delay = updateMessage.includes("❌") ? 4000 : 2500;
+    const timer = setTimeout(() => {
+      setUpdateMessage("");
+    }, delay);
+    return () => clearTimeout(timer);
+     }, [updateMessage]);
       // États pour les fonctionnalités
       const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
       const [patchLang, setPatchLang] = useState("en");
