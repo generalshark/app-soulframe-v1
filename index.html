@@ -793,9 +793,14 @@ const BackgroundParticles = () => {
       if (lastTimeRef.current == null) {
         lastTimeRef.current = timestamp;
       }
-      const dt = (timestamp - lastTimeRef.current) / 1000; // en secondes
-      lastTimeRef.current = timestamp;
+      let dt = (timestamp - lastTimeRef.current) / 1000; // en secondes
+  lastTimeRef.current = timestamp;
 
+  // 👇 Si l'onglet a été inactif longtemps, on évite un saut géant
+  if (dt > 0.25) {
+    // On remplace par un petit pas fixe (~1 frame à 60 FPS)
+    dt = 0.016;
+  }
       const { width, height } = canvas;
       ctx.clearRect(0, 0, width, height);
 
