@@ -2627,7 +2627,8 @@ Date: 2025-11-23 | Version: 0.2.0
       // =============================================================================
       // FONCTIONS D'APPEL API ET RAFRAÎCHISSEMENT
       // =============================================================================
-       // Envoie les infos de compte vers /api/register-account (v0 = juste logs Vercel)
+
+      // Enregistre le compte côté backend (sans envoyer l'accountId)
       function registerAccountFromPayload(json) {
         try {
           const r0 = json?.Results?.[0] || null;
@@ -2676,7 +2677,8 @@ Date: 2025-11-23 | Version: 0.2.0
           console.warn("Error while trying to register account:", e);
         }
       }
-      // Récupérer les données via l'API
+
+      // Récupérer les données via l'API (bouton principal)
       async function fetchViaId(idOverride) {
         const id = idOverride || accountId;
         if (!id) return setError("Veuillez entrer un AccountId valide.");
@@ -2691,14 +2693,16 @@ Date: 2025-11-23 | Version: 0.2.0
           const json = await res.json();
           if (json?.error) throw new Error(json.error);
 
+          // Envoi des infos de compte au backend pour logging
+          registerAccountFromPayload(json);
+
           setUpdateMessage("✅ Données prêtes");
-          setTimeout(() => setUpdateMessage(""), 1500);
 
           setIsTransitioning(true);
-          const D_VEIL   = 2600;
-          const T_SWITCH = 1850;
-          const T_END    = D_VEIL + 80;
-          
+          const T_START = 400;
+          const T_SWITCH = 1200;
+          const T_END = 2000;
+
           setTimeout(() => {
             setPayload(json);
             setView("PS");
@@ -2709,7 +2713,6 @@ Date: 2025-11-23 | Version: 0.2.0
           setTimeout(() => {
             setIsTransitioning(false);
           }, T_END);
-
         } catch (e) {
           setError(e?.message || String(e));
           setUpdateMessage("❌ Échec de la mise à jour");
@@ -2719,149 +2722,117 @@ Date: 2025-11-23 | Version: 0.2.0
         }
       }
 
-      // Rafraîchir les données
+      // Rafraîchir les données (bouton Update + auto-update)
       const refreshData = async (mode = "manual") => {
         const currentAccountId = localStorage.getItem("soulframe_accountId");
 
         if (!currentAccountId) {
-            if (mode === "auto") return;
-            setError("Veuillez entrer un AccountId valide.");
-            return;
+          if (mode === "auto") return;
+          setError("Veuillez entrer un AccountId valide.");
+          return;
         }
 
         try {
-            setIsUpdating(true);
-            if (mode !== "auto") setError("");
+          setIsUpdating(true);
+          if (mode !== "auto") setError("");
 
-            const url = `${PROXY}${encodeURIComponent(SOULFRAME_API + currentAccountId)}`;
-            const res = await fetch(url);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const url = `${PROXY}${encodeURIComponent(
+            SOULFRAME_API + currentAccountId
+          )}`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-            const json = await res.json();
-            if (json?.error) throw new Error(json.error);
+          const json = await res.json();
+          if (json?.error) throw new Error(json.error);
 
-            // Après avoir obtenu le profil Soulframe (json)
-            try {
-            const accountIdToSend = currentAccountId; // celui que tu utilises déjà
+          // Envoi des infos de compte au backend pour logging
+          registerAccountFromPayload(json);
 
-            // On récupère les infos comme dans playerInfo
-           const r0 = json?.Results?.[0] || null;
-           const accountName = r0?.DisplayName || null;
+          const oldPayloadForDiffs = payload;
 
-           const createdRaw = r0?.Created?.$date?.$numberLong || null;
-           const accountCreated = createdRaw
-           ? new Date(Number(createdRaw)).toISOString()
-           : null;
+          if (referenceData) {
+            const currentState = {
+              weaponDiffs,
+              enemyDiffs,
+              statDiffs,
+              weaponBonuses,
+              enemyBonuses,
+              statBonuses,
+            };
 
-           console.log("[REGISTER] candidate data", {
-           accountIdToSend,
-           accountName,
-           accountCreated,
-            });
+            const diffs = computeDiffs(
+              referenceData,
+              json,
+              currentState,
+              currentState
+            );
 
-          if (accountIdToSend && accountName) {
-          fetch("/api/register-account", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-          accountId: accountIdToSend,
-          accountName,
-          accountCreated,
-          }),
-          }).catch((err) => {
-         console.warn("Failed to register account:", err);
-          });
-         } else {
-         console.log("[REGISTER] Skip register-account: missing data", {
-         hasAccountId: !!accountIdToSend,
-         hasR0: !!r0,
-         });
-        }
-      } catch (e) {
-        console.warn("Error while trying to register account:", e);
-      }
+            setWeaponDiffs(diffs.weaponDiffs);
+            setEnemyDiffs(diffs.enemyDiffs);
+            setStatDiffs(diffs.statDiffs);
+            setWeaponBonuses(diffs.weaponBonuses);
+            setEnemyBonuses(diffs.enemyBonuses);
+            setStatBonuses(diffs.statBonuses);
 
-            const oldPayloadForDiffs = payload;
-
-            if (referenceData) {
-              const currentState = {
-                weaponDiffs,
-                enemyDiffs,
-                statDiffs,
-                weaponBonuses,
-                enemyBonuses,
-                statBonuses
-              };
-
-              const diffs = computeDiffs(referenceData, json, currentState, currentState);
-
-              setWeaponDiffs(diffs.weaponDiffs);
-              setEnemyDiffs(diffs.enemyDiffs);
-              setStatDiffs(diffs.statDiffs);
-              setWeaponBonuses(diffs.weaponBonuses);
-              setEnemyBonuses(diffs.enemyBonuses);
-              setStatBonuses(diffs.statBonuses);
-
-              if (diffs.hasChanges) {
-                setHasChanges(true);
-                if (mode !== "auto") {
-                  setUpdateMessage("✅ Progrès depuis la référence");
-                }
-              } else {
-                setHasChanges(false);
-                if (mode !== "auto") {
-                  setUpdateMessage("✅ Données à jour (même que référence)");
-                }
+            if (diffs.hasChanges) {
+              setHasChanges(true);
+              if (mode !== "auto") {
+                setUpdateMessage("✅ Progrès depuis la référence");
               }
             } else {
-              setReferenceData(json);
-              try {
-                localStorage.setItem("soulframe_reference", JSON.stringify(json));
-              } catch (e) {}
-
-              setWeaponDiffs({});
-              setEnemyDiffs({});
-              setStatDiffs({});
-              setWeaponBonuses({});
-              setEnemyBonuses({});
-              setStatBonuses({});
               setHasChanges(false);
-
               if (mode !== "auto") {
-                setUpdateMessage("✅ Référence initialisée");
+                setUpdateMessage("✅ Données à jour (même que référence)");
               }
             }
+          } else {
+            setReferenceData(json);
+            try {
+              localStorage.setItem("soulframe_reference", JSON.stringify(json));
+            } catch (e) {}
 
-            // Mise à jour du module de statistiques
-            if (statsModule) {
-              if (typeof statsModule.handleManualUpdate === "function") {
-                statsModule.handleManualUpdate(json, oldPayloadForDiffs || null);
-              } else if (typeof statsModule.trackActivity === "function") {
-                statsModule.trackActivity(json, oldPayloadForDiffs || null);
-              }
-
-              if (typeof statsModule.saveToStorage === "function") {
-                statsModule.saveToStorage();
-              }
-
-              if (window.updateStatsUI) {
-                window.updateStatsUI();
-              }
-            }
-
-            setPayload(json);
+            setWeaponDiffs({});
+            setEnemyDiffs({});
+            setStatDiffs({});
+            setWeaponBonuses({});
+            setEnemyBonuses({});
+            setStatBonuses({});
+            setHasChanges(false);
 
             if (mode !== "auto") {
-                setTimeout(() => setUpdateMessage(""), 2500);
+              setUpdateMessage("✅ Référence initialisée");
             }
+          }
+
+          // Mise à jour du module de statistiques
+          if (statsModule) {
+            if (typeof statsModule.handleManualUpdate === "function") {
+              statsModule.handleManualUpdate(json, oldPayloadForDiffs || null);
+            } else if (typeof statsModule.trackActivity === "function") {
+              statsModule.trackActivity(json, oldPayloadForDiffs || null);
+            }
+
+            if (typeof statsModule.saveToStorage === "function") {
+              statsModule.saveToStorage();
+            }
+
+            if (window.updateStatsUI) {
+              window.updateStatsUI();
+            }
+          }
+
+          setPayload(json);
+          setView("PS");
+          setActiveTab("player");
+          if (backgroundMusic && !musicStarted) startBackgroundMusic();
         } catch (e) {
-            if (mode !== "auto") {
-                setError(e?.message || String(e));
-                setUpdateMessage("❌ Échec de la mise à jour");
-                setTimeout(() => setUpdateMessage(""), 3000);
-            }
+          setError(e?.message || String(e));
+          if (mode !== "auto") {
+            setUpdateMessage("❌ Échec de la mise à jour");
+            setTimeout(() => setUpdateMessage(""), 3000);
+          }
         } finally {
-            setIsUpdating(false);
+          setIsUpdating(false);
         }
       };
 
