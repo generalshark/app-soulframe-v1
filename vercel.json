@@ -9,7 +9,7 @@
       }
     },
     {
-      "src": "api/*.js",
+      "src": "api/register-account.js",
       "use": "@vercel/node"
     }
   ]
