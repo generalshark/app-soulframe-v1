@@ -2632,8 +2632,11 @@ Date: 2025-11-23 | Version: 0.2.0
       async function registerAccountFromPayload(json, accountIdToSend) {
             const json = await res.json();
             if (json?.error) throw new Error(json.error);
-        // Après avoir obtenu le profil Soulframe (json)
+
+            // Après avoir obtenu le profil Soulframe (json)
             try {
+              const accountIdToSend = currentAccountId; // celui que tu utilises déjà
+
               // On récupère les infos comme dans playerInfo
               const r0 = json?.Results?.[0] || null;
               const accountName = r0?.DisplayName || null;
@@ -2643,30 +2646,41 @@ Date: 2025-11-23 | Version: 0.2.0
                 ? new Date(Number(createdRaw)).toISOString()
                 : null;
 
-              console.log("[REGISTER] candidate data (no ID sent)", {
+              console.log("[REGISTER] candidate data", {
+                accountIdToSend,
                 accountName,
                 accountCreated,
               });
 
-              if (accountName) {
-                fetch("/api/register-account", {
+              if (accountIdToSend && accountName) {
+                const response = await fetch("/api/register-account", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
+                    accountId: accountIdToSend,
                     accountName,
                     accountCreated,
                   }),
-                }).catch((err) => {
-                  console.warn("Failed to register account:", err);
                 });
+
+                if (!response.ok) {
+                  const errorText = await response.text();
+                  console.warn("[REGISTER] Backend error:", {
+                    status: response.status,
+                    body: errorText,
+                  });
+                }
               } else {
                 console.log("[REGISTER] Skip register-account: missing data", {
+                  hasAccountId: !!accountIdToSend,
                   hasR0: !!r0,
                 });
               }
             } catch (e) {
               console.warn("Error while trying to register account:", e);
             }
+
+            const oldPayloadForDiffs = payload;
 
       
       // Récupérer les données via l'API
