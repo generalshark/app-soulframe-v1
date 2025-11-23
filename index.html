@@ -2692,36 +2692,46 @@ Date: 2025-11-23 | Version: 0.2.0
             const json = await res.json();
             if (json?.error) throw new Error(json.error);
 
-            // Après avoir obtenu le profil Soulframe vercel (json)
+            // Après avoir obtenu le profil Soulframe (json)
             try {
-            const accountIdToSend = currentAccountId; // celui que tu utilises déjà pour l’API
+            const accountIdToSend = currentAccountId; // celui que tu utilises déjà
 
-            const accountName =
-            json?.Profile?.AccountName ||
-            json?.profile?.AccountName ||
-            null;
+            // On récupère les infos comme dans playerInfo
+           const r0 = json?.Results?.[0] || null;
+           const accountName = r0?.DisplayName || null;
 
-            const accountCreated =
-            json?.Profile?.AccountCreated ||
-            json?.profile?.AccountCreated ||
-            null;
+           const createdRaw = r0?.Created?.$date?.$numberLong || null;
+           const accountCreated = createdRaw
+           ? new Date(Number(createdRaw)).toISOString()
+           : null;
+
+           console.log("[REGISTER] candidate data", {
+           accountIdToSend,
+           accountName,
+           accountCreated,
+            });
 
           if (accountIdToSend && accountName) {
-            fetch("/api/register-account", {
-             method: "POST",
-             headers: { "Content-Type": "application/json" },
-             body: JSON.stringify({
-             accountId: accountIdToSend,
-             accountName,
-             accountCreated,
+          fetch("/api/register-account", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+          accountId: accountIdToSend,
+          accountName,
+          accountCreated,
           }),
-         }).catch((err) => {
-             console.warn("Failed to register account:", err);
+          }).catch((err) => {
+         console.warn("Failed to register account:", err);
           });
+         } else {
+         console.log("[REGISTER] Skip register-account: missing data", {
+         hasAccountId: !!accountIdToSend,
+         hasR0: !!r0,
+         });
         }
-       } catch (e) {
+      } catch (e) {
         console.warn("Error while trying to register account:", e);
-       }
+      }
 
             const oldPayloadForDiffs = payload;
 
