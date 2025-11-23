@@ -11,8 +11,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Récupération du body (suivant l'environnement Vercel, req.body peut
-  // être déjà un objet ou une string JSON)
+  // Récupération du body (suivant Vercel, req.body peut être déjà un objet ou une string JSON)
   let body = req.body;
 
   if (!body || typeof body === "string") {
@@ -25,10 +24,9 @@ export default async function handler(req, res) {
     }
   }
 
-  // ⚠️ On ne prend plus PAS accountId ici
+  // ⚠️ On NE prend plus PAS accountId ici
   const { accountName, accountCreated } = body || {};
 
-  // Validation minimale
   if (!accountName) {
     console.warn("[register-account] missing accountName", {
       accountName,
@@ -44,6 +42,6 @@ export default async function handler(req, res) {
     accountCreated,
   });
 
-  // TODO v1 : brancher un vrai stockage (KV / DB) si tu veux
+  // TODO v1 : brancher un vrai stockage (KV / DB)
   res.status(200).json({ ok: true });
 }
