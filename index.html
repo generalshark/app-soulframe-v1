@@ -2630,6 +2630,8 @@ Date: 2025-11-23 | Version: 0.2.0
         
       // Envoie les infos de compte vers /api/register-account (v0 = juste logs Vercel)
       async function registerAccountFromPayload(json, accountIdToSend) {
+            const json = await res.json();
+            if (json?.error) throw new Error(json.error);
         // Après avoir obtenu le profil Soulframe (json)
             try {
               // On récupère les infos comme dans playerInfo
