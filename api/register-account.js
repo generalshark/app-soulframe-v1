@@ -25,26 +25,25 @@ export default async function handler(req, res) {
     }
   }
 
-  const { accountId, accountName, accountCreated } = body || {};
+  // ⚠️ On ne prend plus PAS accountId ici
+  const { accountName, accountCreated } = body || {};
 
   // Validation minimale
-  if (!accountId || !accountName) {
-    console.warn("[register-account] missing required fields", {
-      accountId,
+  if (!accountName) {
+    console.warn("[register-account] missing accountName", {
       accountName,
       accountCreated,
     });
-    res.status(400).json({ error: "Missing accountId or accountName" });
+    res.status(400).json({ error: "Missing accountName" });
     return;
   }
 
-  // v0 : on log juste dans Vercel (c’est ton "fichier" pour l’instant)
-  console.log("New account registered:", {
-    accountId,
+  // v0 : on log juste dans les logs Vercel (sans ID)
+  console.log("New account registered (no ID):", {
     accountName,
     accountCreated,
   });
 
-  // plus tard : ici on branchera un vrai stockage (KV / DB / etc.)
+  // TODO v1 : brancher un vrai stockage (KV / DB) si tu veux
   res.status(200).json({ ok: true });
 }
