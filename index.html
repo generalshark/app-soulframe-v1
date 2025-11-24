@@ -2831,13 +2831,51 @@ async function fetchViaId(idOverride) {
           if (mode !== "auto") setError("");
 
           const url = `${PROXY}${encodeURIComponent(
-            SOULFRAME_API + currentAccountId
-          )}`;
-          const res = await fetch(url);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          SOULFRAME_API + currentAccountId
+       )}`;
+       const res = await fetch(url);
 
-          const json = await res.json();
-          if (json?.error) throw new Error(json.error);
+       // Cas HTTP non OK
+       if (!res.ok) {
+         if (res.status === 404) {
+           throw new Error(
+             "No valid Soulframe Account ID found. Please check the ID and try again."
+           );
+         }
+         throw new Error(`HTTP ${res.status}`);
+       }
+
+       // On lit d'abord en texte, puis on essaie de parser
+       const raw = await res.text();
+       let json;
+       try {
+         json = JSON.parse(raw);
+       } catch (parseErr) {
+         const trimmed = raw.trim();
+
+         // Cas typique : "No account ..." renvoyé en texte
+         if (/^no account/i.test(trimmed)) {
+           throw new Error(
+             "No valid Soulframe Account ID found. Please check the ID and try again."
+           );
+         }
+
+         console.error("Soulframe API – unexpected response (refresh):", trimmed);
+         throw new Error(
+           "Unexpected response from Soulframe API while refreshing data. Please try again later."
+         );
+       }
+
+         // Cas où l’API renvoie un champ error dans le JSON
+         if (json?.error) {
+            const apiMsg = json.error;
+          if (/no account/i.test(apiMsg)) {
+             throw new Error(
+               "No valid Soulframe Account ID found. Please check the ID and try again."
+            );
+          }
+          throw new Error(apiMsg);
+       }
 
           // Pas d'appel registerAccountFromPayload ici :
           // on veut limiter les requêtes KV, l'enregistrement du compte
@@ -2920,11 +2958,14 @@ async function fetchViaId(idOverride) {
           setView("PS");
           setActiveTab("player");
           if (backgroundMusic && !musicStarted) startBackgroundMusic();
-        } catch (e) {
-          setError(e?.message || String(e));
-          if (mode !== "auto") {
-            setUpdateMessage("❌ Échec de la mise à jour");
-            setTimeout(() => setUpdateMessage(""), 3000);
+          } catch (e) {
+          const msg = e?.message || String(e);
+          setError(msg);
+
+          // Pas de toast "Échec" si c'est juste un mauvais Account ID
+          if (mode !== "auto" && !/No valid Soulframe Account ID found/i.test(msg)) {
+              setUpdateMessage("❌ Échec de la mise à jour");
+              setTimeout(() => setUpdateMessage(""), 3000);
           }
         } finally {
           setIsUpdating(false);
@@ -3646,7 +3687,6 @@ async function fetchViaId(idOverride) {
                    type="button"
                    onClick={() => {
                      setError("");
-                     setView("PA"); // retour à la page d'accueil
                     }}
                     className="shrink-0 rounded-full border border-red-500/70 bg-red-900/60 hover:bg-red-800/90 transition-colors p-1.5"
                 >
