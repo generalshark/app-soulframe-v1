@@ -1,20 +1,37 @@
 // api/register-account.js
-function getRedisClient() {
-  const url =
-    process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-  const token =
-    process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
 
-  if (!url || !token) {
+// Petit helper générique pour appeler Upstash KV via REST
+async function kvCommand(command, ...args) {
+  const baseUrl = process.env.KV_REST_API_URL;
+  const token = process.env.KV_REST_API_TOKEN;
+
+  if (!baseUrl || !token) {
     console.warn(
-      "[redis] Missing URL or token (UPSTASH_REDIS_REST_* or KV_REST_API_*)"
+      "[KV] Missing KV_REST_API_URL or KV_REST_API_TOKEN – skipping storage"
     );
     return null;
   }
 
-  return new Redis({ url, token });
-}
+  const path = [command, ...args]
+    .map((part) => encodeURIComponent(String(part)))
+    .join("/");
 
+  const url = `${baseUrl}/${path}`;
+
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`[KV] HTTP ${res.status}: ${text}`);
+  }
+
+  const data = await res.json();
+  return data.result;
+}
 
 export default async function handler(req, res) {
   console.log("[register-account] incoming request", {
@@ -27,7 +44,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Récupération / parsing du body
+  // Parse du body
   let body = req.body;
   if (!body || typeof body === "string") {
     try {
@@ -41,7 +58,7 @@ export default async function handler(req, res) {
 
   const { accountName, accountCreated } = body || {};
 
-  // On ne stocke jamais d'accountId ici
+  // On ne gère jamais d'accountId ici (donnée sensible)
   if (!accountName) {
     console.warn("[register-account] missing accountName", {
       accountName,
@@ -51,26 +68,21 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Essaie de créer un client Redis
-  const redis = getRedisClient();
-
-  // Si pas de Redis configuré → on log seulement, pas d'erreur 500
-  if (!redis) {
-    console.log("New account registered (no Redis configured, log only):", {
-      accountName,
-      accountCreated,
-    });
-    res.status(200).json({ ok: true, stored: false });
-    return;
-  }
+  const now = new Date().toISOString();
+  const key = `account:${accountName.toLowerCase()}`;
+  const indexKey = "accounts:index";
 
   try {
-    const now = new Date().toISOString();
-    const key = `account:${accountName.toLowerCase()}`;
-    const indexKey = "accounts:index";
-
-    // On récupère les données existantes s'il y en a
-    const existing = await redis.hgetall(key); // objet ou null
+    // --- Lecture éventuelle de la fiche existante ---
+    let existing = null;
+    try {
+      const existingJson = await kvCommand("get", key);
+      if (existingJson) {
+        existing = JSON.parse(existingJson);
+      }
+    } catch (e) {
+      console.warn("[register-account] unable to read existing data from KV", e);
+    }
 
     const previousVisits = existing?.visitsCount
       ? Number(existing.visitsCount)
@@ -80,34 +92,33 @@ export default async function handler(req, res) {
     const storedAccountCreated =
       existing?.accountCreated || accountCreated || "";
 
-    // Mise à jour du hash pour ce compte
-    await redis.hset(key, {
-      name: existing?.name || accountName,
-      accountCreated: storedAccountCreated,
-      firstSeenAt,
-      lastSeenAt: now,
-      visitsCount: previousVisits + 1,
-    });
-
-    // Ajoute ce pseudo dans le set d'index
-    await redis.sadd(indexKey, accountName);
-
-    console.log("New account registered (Redis stored):", {
+    const accountData = {
       accountName,
       accountCreated: storedAccountCreated,
       firstSeenAt,
       lastSeenAt: now,
       visitsCount: previousVisits + 1,
-    });
+    };
+
+    // --- Écriture dans KV (SET + SADD index) ---
+    try {
+      await kvCommand("set", key, JSON.stringify(accountData));
+      await kvCommand("sadd", indexKey, accountName);
+    } catch (e) {
+      console.error("[register-account] error writing to KV", e);
+      // On log quand même, mais on ne casse pas le front
+      console.log("New account (KV write failed, log only):", accountData);
+      res.status(200).json({ ok: true, stored: false });
+      return;
+    }
+
+    console.log("New account registered (KV stored):", accountData);
 
     res.status(200).json({ ok: true, stored: true });
   } catch (err) {
-    console.error("[register-account] error writing to Redis:", err);
-    // fallback : on log quand même le passage du joueur
-    console.log("New account registered (Redis error, log only):", {
-      accountName,
-      accountCreated,
-    });
+    console.error("[register-account] unexpected error:", err);
+    // On évite de bloquer le front : on renvoie quand même 200
     res.status(200).json({ ok: true, stored: false });
   }
 }
+
