@@ -1,7 +1,17 @@
 // api/accounts.js
 import { Redis } from "@upstash/redis";
 
-const redis = Redis.fromEnv();
+function getRedisClient() {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!url || !token) {
+    console.warn("[redis] Missing UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN");
+    return null;
+  }
+
+  return new Redis({ url, token });
+}
 
 export default async function handler(req, res) {
   console.log("[accounts] incoming request", {
@@ -11,6 +21,14 @@ export default async function handler(req, res) {
 
   if (req.method !== "GET") {
     res.status(405).json({ error: "Method not allowed" });
+    return;
+  }
+
+  const redis = getRedisClient();
+
+  if (!redis) {
+    // Ici on signale clairement que le stockage n'est pas configuré
+    res.status(500).json({ error: "Redis storage not configured" });
     return;
   }
 
@@ -40,7 +58,6 @@ export default async function handler(req, res) {
     const format = (req.query?.format || "json").toString().toLowerCase();
 
     if (format === "csv") {
-      // Génération CSV simple
       const header =
         "accountName,accountCreated,firstSeenAt,lastSeenAt,visitsCount\n";
 
@@ -70,7 +87,6 @@ export default async function handler(req, res) {
       );
       res.status(200).send(csv);
     } else {
-      // JSON par défaut
       res.status(200).json(accounts);
     }
   } catch (err) {
