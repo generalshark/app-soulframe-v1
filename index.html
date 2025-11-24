@@ -2782,8 +2782,12 @@ Date: 2025-11-23 | Version: 0.2.0
           const json = await res.json();
           if (json?.error) throw new Error(json.error);
 
-          // Envoi des infos de compte au backend pour logging
-          registerAccountFromPayload(json);
+          // Pas d'appel registerAccountFromPayload ici :
+          // on veut limiter les requêtes KV, l'enregistrement du compte
+          // se fait seulement lors du premier chargement (fetchViaId).
+
+          const oldPayloadForDiffs = payload;
+
 
           const oldPayloadForDiffs = payload;
 
