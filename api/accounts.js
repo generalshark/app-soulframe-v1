@@ -1,20 +1,37 @@
-// s api/accounts.js
-function getRedisClient() {
-  const url =
-    process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-  const token =
-    process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+// api/accounts.js
 
-  if (!url || !token) {
+// Même helper que dans register-account.js
+async function kvCommand(command, ...args) {
+  const baseUrl = process.env.KV_REST_API_URL;
+  const token = process.env.KV_REST_API_TOKEN;
+
+  if (!baseUrl || !token) {
     console.warn(
-      "[redis] Missing URL or token (UPSTASH_REDIS_REST_* or KV_REST_API_*)"
+      "[KV] Missing KV_REST_API_URL or KV_REST_API_TOKEN – storage not configured"
     );
     return null;
   }
 
-  return new Redis({ url, token });
-}
+  const path = [command, ...args]
+    .map((part) => encodeURIComponent(String(part)))
+    .join("/");
 
+  const url = `${baseUrl}/${path}`;
+
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`[KV] HTTP ${res.status}: ${text}`);
+  }
+
+  const data = await res.json();
+  return data.result;
+}
 
 export default async function handler(req, res) {
   console.log("[accounts] incoming request", {
@@ -27,29 +44,31 @@ export default async function handler(req, res) {
     return;
   }
 
-  const redis = getRedisClient();
-
-  if (!redis) {
-    // Ici on signale clairement que le stockage n'est pas configuré
-    res.status(500).json({ error: "Redis storage not configured" });
-    return;
-  }
-
   try {
-    // Liste des pseudos
-    const names = await redis.smembers("accounts:index");
+    // Liste des pseudos (set Redis)
+    const names = await kvCommand("smembers", "accounts:index");
 
     if (!names || names.length === 0) {
       res.status(200).json([]);
       return;
     }
 
-    // Récupère les infos pour chaque pseudo
+    // Récupération des fiches
     const accounts = await Promise.all(
       names.map(async (name) => {
-        const data = await redis.hgetall(`account:${name.toLowerCase()}`);
+        let data = null;
+        try {
+          const json = await kvCommand(
+            "get",
+            `account:${String(name).toLowerCase()}`
+          );
+          if (json) data = JSON.parse(json);
+        } catch (e) {
+          console.warn("[accounts] failed to read/parse account", name, e);
+        }
+
         return {
-          accountName: data?.name || name,
+          accountName: data?.accountName || name,
           accountCreated: data?.accountCreated || null,
           firstSeenAt: data?.firstSeenAt || null,
           lastSeenAt: data?.lastSeenAt || null,
@@ -97,3 +116,4 @@ export default async function handler(req, res) {
     res.status(500).json({ error: "Failed to list accounts" });
   }
 }
+
