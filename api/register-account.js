@@ -1,7 +1,18 @@
 // api/register-account.js
 import { Redis } from "@upstash/redis";
 
-const redis = Redis.fromEnv(); // lit les variables UPSTASH_REDIS_* automatiques
+// Petit helper pour créer le client Redis seulement si les env sont là
+function getRedisClient() {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!url || !token) {
+    console.warn("[redis] Missing UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN");
+    return null;
+  }
+
+  return new Redis({ url, token });
+}
 
 export default async function handler(req, res) {
   console.log("[register-account] incoming request", {
@@ -38,13 +49,26 @@ export default async function handler(req, res) {
     return;
   }
 
+  // Essaie de créer un client Redis
+  const redis = getRedisClient();
+
+  // Si pas de Redis configuré → on log seulement, pas d'erreur 500
+  if (!redis) {
+    console.log("New account registered (no Redis configured, log only):", {
+      accountName,
+      accountCreated,
+    });
+    res.status(200).json({ ok: true, stored: false });
+    return;
+  }
+
   try {
     const now = new Date().toISOString();
     const key = `account:${accountName.toLowerCase()}`;
     const indexKey = "accounts:index";
 
     // On récupère les données existantes s'il y en a
-    const existing = await redis.hgetall(key); // retourne un objet ou null
+    const existing = await redis.hgetall(key); // objet ou null
 
     const previousVisits = existing?.visitsCount
       ? Number(existing.visitsCount)
@@ -66,7 +90,7 @@ export default async function handler(req, res) {
     // Ajoute ce pseudo dans le set d'index
     await redis.sadd(indexKey, accountName);
 
-    console.log("New account registered (Upstash Redis stored):", {
+    console.log("New account registered (Redis stored):", {
       accountName,
       accountCreated: storedAccountCreated,
       firstSeenAt,
@@ -78,7 +102,7 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error("[register-account] error writing to Redis:", err);
     // fallback : on log quand même le passage du joueur
-    console.log("New account registered (log only):", {
+    console.log("New account registered (Redis error, log only):", {
       accountName,
       accountCreated,
     });
