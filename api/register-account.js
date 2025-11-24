@@ -1,18 +1,20 @@
 // api/register-account.js
-import { Redis } from "@upstash/redis";
-
-// Petit helper pour créer le client Redis seulement si les env sont là
 function getRedisClient() {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url =
+    process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const token =
+    process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
 
   if (!url || !token) {
-    console.warn("[redis] Missing UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN");
+    console.warn(
+      "[redis] Missing URL or token (UPSTASH_REDIS_REST_* or KV_REST_API_*)"
+    );
     return null;
   }
 
   return new Redis({ url, token });
 }
+
 
 export default async function handler(req, res) {
   console.log("[register-account] incoming request", {
