@@ -1,4 +1,4 @@
-// api/accounts.js
+// s api/accounts.js
 import { Redis } from "@upstash/redis";
 
 function getRedisClient() {
