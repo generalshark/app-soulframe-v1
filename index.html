@@ -2638,6 +2638,7 @@ Date: 2025-11-23 | Version: 0.2.0
       // =============================================================================
 
       // Enregistre le compte côté backend (sans envoyer l'accountId)
+      // Enregistre le compte côté backend (uniquement 1x par navigateur)
       function registerAccountFromPayload(json) {
         try {
           const r0 = json?.Results?.[0] || null;
@@ -2660,6 +2661,24 @@ Date: 2025-11-23 | Version: 0.2.0
             return;
           }
 
+          // --- Garde-fou : 1 seule requête par compte et par navigateur ---
+          const storageKey =
+            "soulframe_registered_" + accountName.toLowerCase();
+
+          try {
+            const already = localStorage.getItem(storageKey);
+            if (already === "1") {
+              console.log(
+                "[REGISTER] Skip register-account: already registered in this browser",
+                { accountName }
+              );
+              return;
+            }
+          } catch (e) {
+            // Si localStorage plante (mode privé, etc.), on ignore et on continue
+            console.warn("[REGISTER] localStorage not available, continuing anyway");
+          }
+
           fetch("/api/register-account", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -2668,16 +2687,24 @@ Date: 2025-11-23 | Version: 0.2.0
               accountCreated,
             }),
           })
-            .then((res) => {
+            .then(async (res) => {
               if (!res.ok) {
-                return res.text().then((text) => {
-                  console.warn("[REGISTER] backend error", {
-                    status: res.status,
-                    text,
-                  });
+                const text = await res.text();
+                console.warn("[REGISTER] backend error", {
+                  status: res.status,
+                  text,
                 });
+                return;
               }
+
               console.log("[REGISTER] successfully sent to backend");
+
+              // On marque le compte comme déjà enregistré
+              try {
+                localStorage.setItem(storageKey, "1");
+              } catch (e) {
+                // pas grave si ça échoue
+              }
             })
             .catch((err) => {
               console.warn("Failed to register account:", err);
@@ -2686,6 +2713,7 @@ Date: 2025-11-23 | Version: 0.2.0
           console.warn("Error while trying to register account:", e);
         }
       }
+
 
       // Récupérer les données via l'API (bouton principal)
       async function fetchViaId(idOverride) {
