@@ -2734,7 +2734,7 @@ Date: 2025-11-23 | Version: 0.2.0
 
 
       // Récupérer les données via l'API (bouton principal)
-      async function fetchViaId(idOverride) {
+async function fetchViaId(idOverride) {
         const id = idOverride || accountId;
         if (!id) return setError("Veuillez entrer un AccountId valide.");
 
@@ -2744,9 +2744,43 @@ Date: 2025-11-23 | Version: 0.2.0
 
           const url = `${PROXY}${encodeURIComponent(SOULFRAME_API + id)}`;
           const res = await fetch(url);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const json = await res.json();
-          if (json?.error) throw new Error(json.error);
+
+          // Cas HTTP non OK
+          if (!res.ok) {
+            if (res.status === 404) {
+              throw new Error(
+                "No valid Soulframe Account ID found. Please check the ID and try again."
+              );
+            }
+            throw new Error(`HTTP ${res.status}`);
+          }
+
+          // On lit d'abord en texte, puis on essaie de parser
+          const raw = await res.text();
+          let json;
+          try {
+            json = JSON.parse(raw);
+          } catch (parseErr) {
+            const trimmed = raw.trim();
+            // Cas typique: "No account ..." renvoyé en texte
+            if (/^no account/i.test(trimmed)) {
+              throw new Error(
+                "No valid Soulframe Account ID found. Please check the ID and try again."
+              );
+            }
+            console.error("Soulframe API – unexpected response:", trimmed);
+            throw new Error(
+              "Unexpected response from Soulframe API. Please try again later."
+            );
+          }
+
+          // Cas où l’API renvoie un champ error dans le JSON
+          if (json?.error) {
+            const apiMessage = /no account/i.test(json.error)
+              ? "No valid Soulframe Account ID found. Please check the ID and try again."
+              : json.error;
+            throw new Error(apiMessage);
+          }
 
           // Envoi des infos de compte au backend pour logging
           registerAccountFromPayload(json);
@@ -2768,10 +2802,15 @@ Date: 2025-11-23 | Version: 0.2.0
           setTimeout(() => {
             setIsTransitioning(false);
           }, T_END);
-        } catch (e) {
-          setError(e?.message || String(e));
-          setUpdateMessage("❌ Échec de la mise à jour");
-          setTimeout(() => setUpdateMessage(""), 3000);
+         } catch (e) {
+          const msg = e?.message || String(e);
+          setError(msg);
+
+          // ❌ Ne pas afficher le toast "Échec" si c'est juste un mauvais Account ID
+          if (!/No valid Soulframe Account ID found/i.test(msg)) {
+            setUpdateMessage("❌ Échec de la mise à jour");
+            setTimeout(() => setUpdateMessage(""), 3000);
+          }
         } finally {
           setIsUpdating(false);
         }
@@ -3597,12 +3636,38 @@ Date: 2025-11-23 | Version: 0.2.0
             <div className="h-2 sm:h-0" />
 
             <div className="page-stack">
-              {/* Erreur API */}
-              {error && (
-                <div className="mb-6 p-4 bg-red-900/20 border border-red-700/40 rounded-xl text-red-200 text-sm">
-                  ❌ Erreur: {error}
-                </div>
-              )}
+             {/* Erreur API – popup centré */}
+             {error && (
+             <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 px-4">
+              <div className="max-w-md w-full bg-[#0b0a08]/95 border border-red-700/70 rounded-2xl p-5 md:p-6 text-red-100 text-sm shadow-2xl shadow-black/80">
+               <div className="flex items-start gap-4">
+                 {/* Bouton Retour avec ton icône */}
+                  <button
+                   type="button"
+                   onClick={() => {
+                     setError("");
+                     setView("PA"); // retour à la page d'accueil
+                    }}
+                    className="shrink-0 rounded-full border border-red-500/70 bg-red-900/60 hover:bg-red-800/90 transition-colors p-1.5"
+                >
+                   <img
+                    src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/Retour.png"
+                    alt="Back to home"
+                    className="w-7 h-7 object-contain"
+                  />
+                 <span className="sr-only">Back</span>
+                </button>
+
+               {/* Texte d'erreur */}
+                <div>
+               <div className="font-semibold mb-2">❌ Error</div>
+              <div>{error}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      )}
+
 
               {/* PAGE D'ACCUEIL */}
               <div
