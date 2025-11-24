@@ -5050,33 +5050,33 @@ Date: 2025-11-23 | Version: 0.2.0
 
 {/* Footer */}
 <footer className="relative z-40 border-t border-amber-900/20 bg-[#0a0a08]/50 py-6 mt-12">
-  <div className="max-w-7xl mx-auto px-4 text-amber-400/60 text-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-    
-    {/* Texte existant à gauche */}
-    <div className="text-center md:text-left">
+  <div className="max-w-7xl mx-auto px-4 text-amber-400/60 text-sm relative">
+    {/* Texte centré */}
+    <div className="text-center">
       <p className="mb-1">
         Soulframe Data Tracker • Data retrieved from the official API
       </p>
-      <div className="text-center md:text-left text-amber-500/40 text-xs">
-        <p className="mb-2">
-          Soulframe™ is a registered trademark of <strong>Digital Extremes Ltd.</strong><br />
-          This site is a fan-made tracking tool and is not affiliated with Digital Extremes.<br />
-          All rights to multimedia assets belong to their respective owners.
-        </p>
-      </div>
+      <p className="text-amber-500/40 text-xs">
+        Soulframe™ is a registered trademark of <strong>Digital Extremes Ltd.</strong><br />
+        This site is a fan-made tracking tool and is not affiliated with Digital Extremes.<br />
+        All rights to multimedia assets belong to their respective owners.
+      </p>
     </div>
 
-    {/* Lien Soulframe Wiki FR à droite */}
+    {/* Lien Soulframe Wiki FR, collé à droite, sans créer de hauteur en plus */}
     <a
       href="https://soulframe-guide.super.site/"
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center justify-center gap-3 mx-auto md:mx-0 text-amber-200 hover:text-amber-100 transition-transform duration-200 hover:scale-105"
+      className="inline-flex items-center gap-3 text-amber-200 hover:text-amber-100 
+                 transition-transform duration-200 hover:scale-105
+                 absolute right-4 top-1/2 -translate-y-1/2"
     >
       <img
         src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/WikiFR.png"
         alt="Soulframe Wiki FR"
-        className="w-10 h-10 object-contain rounded-lg border border-amber-500/60 shadow-[0_0_14px_rgba(0,0,0,0.75)] bg-black/40"
+        className="w-8 h-8 md:w-10 md:h-10 object-contain rounded-lg 
+                   border border-amber-500/60 shadow-[0_0_14px_rgba(0,0,0,0.75)] bg-black/40"
       />
       <span className="text-sm font-semibold">
         Soulframe Wiki FR
