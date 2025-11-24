@@ -387,9 +387,9 @@ Date: 2025-11-23 | Version: 0.2.0
             // Trajet horizontal
             const yMin = h * 0.05;
             const yMax = h * 0.95 - moteSize;
-            const baseY = yMin + randFromIndex(3.21) * (yMax - yMin);
+            const baseY = yMin + Math.random() * (yMax - yMin);
 
-            const fromLeft = randFromIndex(5.43) < 0.5;
+            const fromLeft = Math.random() < 0.5;
             const fromX = fromLeft ? -moteSize : w;
             const toX = fromLeft ? w : -moteSize;
 
@@ -410,9 +410,9 @@ Date: 2025-11-23 | Version: 0.2.0
             // Trajet vertical
             const xMin = w * 0.02;
             const xMax = w * 0.98 - moteSize;
-            const baseX = xMin + randFromIndex(6.54) * (xMax - xMin);
+            const baseX = xMin + Math.random() * (xMax - xMin);
 
-            const fromBottom = randFromIndex(8.76) < 0.5;
+            const fromBottom = Math.random() < 0.5;
             const fromY = fromBottom ? h : -moteSize;
             const toY = fromBottom ? -moteSize : h;
 
@@ -573,7 +573,10 @@ Date: 2025-11-23 | Version: 0.2.0
       }, [index, total]);
 
       return (
-        <div className="pointer-events-none fixed inset-0 z-60">
+        <div
+          className="pointer-events-none fixed inset-0"
+          style={{ zIndex: 60 }}
+        >
           <img
             src="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/public/mote1.png"
             style={style}
