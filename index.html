@@ -2948,6 +2948,11 @@ Date: 2025-11-23 | Version: 0.2.0
             console.warn("[REGISTER] localStorage not available, continuing anyway");
           }
 
+          if (window.location.protocol === "file:") {
+          console.log("[REGISTER] Skip register-account on file:// origin");
+          return;
+          }
+          
           fetch("/api/register-account", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
