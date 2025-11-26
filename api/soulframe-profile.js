@@ -2,7 +2,7 @@
 const SOULFRAME_API_BASE =
   "https://api.soulframe.com/cdn/getProfileViewingData.php?playerId=";
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   try {
     // On accepte uniquement GET
     if (req.method !== "GET") {
@@ -22,7 +22,6 @@ module.exports = async (req, res) => {
     }
 
     const trimmedId = playerId.trim();
-
     const targetUrl = SOULFRAME_API_BASE + encodeURIComponent(trimmedId);
 
     const upstream = await fetch(targetUrl, {
@@ -47,15 +46,14 @@ module.exports = async (req, res) => {
       res
         .status(502)
         .send(
-          `Upstream Soulframe API error (HTTP ${upstream.status}): ${trimmed.slice(
-            0,
-            200
-          )}`
+          `Upstream Soulframe API error (HTTP ${
+            upstream.status
+          }): ${trimmed.slice(0, 200)}`
         );
       return;
     }
 
-    // Tout va bien → on renvoie le JSON brut
+    // OK → on renvoie le JSON brut
     res.setHeader("Content-Type", "application/json");
     res.status(200).send(bodyText);
   } catch (err) {
@@ -64,4 +62,4 @@ module.exports = async (req, res) => {
       .status(502)
       .json({ error: "Internal proxy error while contacting Soulframe API" });
   }
-};
+}
