@@ -2997,7 +2997,7 @@ async function fetchViaId(idOverride) {
           setIsUpdating(true);
           setError("");
 
-          const url = `${PROXY}${encodeURIComponent(SOULFRAME_API + id)}`;
+          const url = `${BACKEND_SF_PROFILE}?playerId=${encodeURIComponent(id)}`;
           const res = await fetch(url);
 
           // Cas HTTP non OK
@@ -3086,10 +3086,11 @@ async function fetchViaId(idOverride) {
           setIsUpdating(true);
           if (mode !== "auto") setError("");
 
-          const url = `${PROXY}${encodeURIComponent(
-          SOULFRAME_API + currentAccountId
-       )}`;
-       const res = await fetch(url);
+         const url = `${BACKEND_SF_PROFILE}?playerId=${encodeURIComponent(
+           currentAccountId
+         )}`;
+         const res = await fetch(url);
+
 
        // Cas HTTP non OK
        if (!res.ok) {
