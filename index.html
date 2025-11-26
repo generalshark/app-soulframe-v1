@@ -1150,8 +1150,8 @@ Date: 2025-11-23 | Version: 0.2.0
     // CONSTANTES ET CONFIGURATIONS
     // =============================================================================
     const BACKEND_SF_PROFILE = "/api/soulframe-profile";
-    const LORE_URL ="https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/docs/lore.json";
-
+    const LORE_URL = "https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/docs/lore.json";
+    
     // Configuration des onglets
     const ongletsConfig = [
       { id: 'player',    label: 'Player' },
@@ -2988,88 +2988,90 @@ Date: 2025-11-23 | Version: 0.2.0
       }
 
 
-      // Récupérer les données via l'API (bouton principal)
+// Récupérer les données via l'API (bouton principal)
 async function fetchViaId(idOverride) {
-        const id = idOverride || accountId;
-        if (!id) return setError("Veuillez entrer un AccountId valide.");
+  const id = idOverride || accountId;
+  if (!id) return setError("Veuillez entrer un AccountId valide.");
 
-        try {
-          setIsUpdating(true);
-          setError("");
+  try {
+    setIsUpdating(true);
+    setError("");
 
-          const url = `${BACKEND_SF_PROFILE}?playerId=${encodeURIComponent(id)}`;
-          const res = await fetch(url);
+    //  backend Vercel
+    const url = `${BACKEND_SF_PROFILE}?playerId=${encodeURIComponent(id)}`;
+    const res = await fetch(url);
 
-          // Cas HTTP non OK
-          if (!res.ok) {
-            if (res.status === 404) {
-              throw new Error(
-                "No valid Soulframe Account ID found. Please check the ID and try again."
-              );
-            }
-            throw new Error(`HTTP ${res.status}`);
-          }
-
-          // On lit d'abord en texte, puis on essaie de parser
-          const raw = await res.text();
-          let json;
-          try {
-            json = JSON.parse(raw);
-          } catch (parseErr) {
-            const trimmed = raw.trim();
-            // Cas typique: "No account ..." renvoyé en texte
-            if (/^no account/i.test(trimmed)) {
-              throw new Error(
-                "No valid Soulframe Account ID found. Please check the ID and try again."
-              );
-            }
-            console.error("Soulframe API – unexpected response:", trimmed);
-            throw new Error(
-              "Unexpected response from Soulframe API. Please try again later."
-            );
-          }
-
-          // Cas où l’API renvoie un champ error dans le JSON
-          if (json?.error) {
-            const apiMessage = /no account/i.test(json.error)
-              ? "No valid Soulframe Account ID found. Please check the ID and try again."
-              : json.error;
-            throw new Error(apiMessage);
-          }
-
-          // Envoi des infos de compte au backend pour logging
-          registerAccountFromPayload(json);
-
-          setUpdateMessage("✅ Données prêtes");
-
-          setIsTransitioning(true);
-          const T_START = 400;
-          const T_SWITCH = 1200;
-          const T_END = 2000;
-
-          setTimeout(() => {
-            setPayload(json);
-            setView("PS");
-            setActiveTab("player");
-            if (backgroundMusic && !musicStarted) startBackgroundMusic();
-          }, T_SWITCH);
-
-          setTimeout(() => {
-            setIsTransitioning(false);
-          }, T_END);
-         } catch (e) {
-          const msg = e?.message || String(e);
-          setError(msg);
-
-          // ❌ Ne pas afficher le toast "Échec" si c'est juste un mauvais Account ID
-          if (!/No valid Soulframe Account ID found/i.test(msg)) {
-            setUpdateMessage("❌ Échec de la mise à jour");
-            setTimeout(() => setUpdateMessage(""), 3000);
-          }
-        } finally {
-          setIsUpdating(false);
-        }
+    // Cas HTTP non OK
+    if (!res.ok) {
+      if (res.status === 404) {
+        throw new Error(
+          "No valid Soulframe Account ID found. Please check the ID and try again."
+        );
       }
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    // On lit d'abord en texte, puis on essaie de parser
+    const raw = await res.text();
+    let json;
+    try {
+      json = JSON.parse(raw);
+    } catch (parseErr) {
+      const trimmed = raw.trim();
+      // Cas typique: texte simple
+      if (/^no account/i.test(trimmed)) {
+        throw new Error(
+          "No valid Soulframe Account ID found. Please check the ID and try again."
+        );
+      }
+      console.error("Soulframe API – unexpected response:", trimmed);
+      throw new Error(
+        "Unexpected response from Soulframe API. Please try again later."
+      );
+    }
+
+    // Cas où l’API renvoie un champ error dans le JSON
+    if (json?.error) {
+      const apiMessage = /no account/i.test(json.error)
+        ? "No valid Soulframe Account ID found. Please check the ID and try again."
+        : json.error;
+      throw new Error(apiMessage);
+    }
+
+    // Envoi des infos de compte au backend pour logging
+    registerAccountFromPayload(json);
+
+    setUpdateMessage("✅ Données prêtes");
+
+    setIsTransitioning(true);
+    const T_START = 400;
+    const T_SWITCH = 1200;
+    const T_END = 2000;
+
+    setTimeout(() => {
+      setPayload(json);
+      setView("PS");
+      setActiveTab("player");
+      if (backgroundMusic && !musicStarted) startBackgroundMusic();
+    }, T_SWITCH);
+
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, T_END);
+  } catch (e) {
+    const msg = e?.message || String(e);
+    setError(msg);
+
+    // ❌ Ne pas afficher le toast "Échec" si c'est juste un mauvais Account ID
+    if (!/No valid Soulframe Account ID found/i.test(msg)) {
+      setUpdateMessage("❌ Échec de la mise à jour");
+      setTimeout(() => setUpdateMessage(""), 3000);
+    }
+  } finally {
+    setIsUpdating(false);
+  }
+}
+
 
 
       // Rafraîchir les données (bouton Update + auto-update)
@@ -3087,10 +3089,9 @@ async function fetchViaId(idOverride) {
           if (mode !== "auto") setError("");
 
          const url = `${BACKEND_SF_PROFILE}?playerId=${encodeURIComponent(
-           currentAccountId
-         )}`;
+            currentAccountId
+        )}`;
          const res = await fetch(url);
-
 
        // Cas HTTP non OK
        if (!res.ok) {
