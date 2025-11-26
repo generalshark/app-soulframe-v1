@@ -4454,12 +4454,31 @@ const refreshData = async (mode = "manual") => {
                           </div>
 
                           {/* Contenu dynamique */}
-                          <section className="min-w-0">
-                            <header className="mb-5 pb-3 border-b border-amber-800/50 flex items-center justify-between">
-                              <h2 className="text-2xl font-serif text-amber-200 drop-shadow">
-                                {activeTabConf.label}
-                              </h2>
-                            </header>
+                         <section className="min-w-0">
+                          {/* Header : on n'affiche quelque chose que pour l'onglet Player
+                          ET uniquement si on a un founderInfo. Sinon : rien. */}
+                         {activeTab === "player" && founderInfo && (
+                          <header className="mb-5 pb-3 border-b border-amber-800/50 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                           <div className="w-9 h-9 rounded-full overflow-hidden border border-amber-400/80 bg-black/60 flex items-center justify-center">
+                             <img
+                               src={founderInfo.image}
+                               alt={founderInfo.title}
+                               className="w-9 h-9 object-contain"
+                             />
+                           </div>
+                           <div className="flex flex-col leading-tight">
+                          <span className="text-[10px] uppercase tracking-[0.18em] text-amber-300/80">
+                         Founder Pack
+                         </span>
+                         <span className="text-base font-semibold text-amber-50">
+                       {founderInfo.title}
+                     </span>
+                    </div>
+                   </div>
+                  </header>
+                  )}
+
 
                             {/* CONTENU ONGLET PLAYER */}
                             {activeTab === "player" && (                              
@@ -4483,30 +4502,6 @@ const refreshData = async (mode = "manual") => {
                                         >
                                           {/* Contour lumineux */}
                                           <div className="absolute inset-0 rounded-lg border-2 border-amber-400/70 pointer-events-none" />
-
-                                          {/* Badge Founder en haut à droite */}
-                                          {founderInfo && (
-                                            <div
-                                             className="absolute top-3 right-4 flex items-center gap-2 bg-black/70 border border-amber-500/80 rounded-full px-2.5 py-1 shadow-[0_0_18px_rgba(0,0,0,0.9)]"
-                                             style={{ zIndex: 5 }}
-                                            >
-                                               <div className="w-7 h-7 rounded-full overflow-hidden border border-amber-400/80 bg-black/60 flex items-center justify-center">
-                                                <img
-                                                  src={founderInfo.image}
-                                                  alt={founderInfo.title}
-                                                  className="w-7 h-7 object-contain"
-                                                />
-                                              </div>
-                                              <div className="flex flex-col leading-tight">
-                                                <span className="text-[9px] uppercase tracking-[0.18em] text-amber-300/80">
-                                                  Founder Pack
-                                                </span>
-                                                <span className="text-[11px] font-semibold text-amber-50">
-                                                  {founderInfo.title}
-                                                </span>
-                                              </div>
-                                            </div>
-                                          )}
 
                                           {/* Sphère MR */}
                                           <div
