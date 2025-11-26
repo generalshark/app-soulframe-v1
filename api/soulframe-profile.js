@@ -3,27 +3,27 @@ const SOULFRAME_API_BASE =
   "https://api.soulframe.com/cdn/getProfileViewingData.php?playerId=";
 
 export default async function handler(req, res) {
+  // Autoriser uniquement GET
+  if (req.method !== "GET") {
+    res.setHeader("Allow", "GET");
+    res.status(405).send("Method Not Allowed");
+    return;
+  }
+
+  const playerId =
+    (req.query && typeof req.query.playerId === "string"
+      ? req.query.playerId
+      : "") || "";
+
+  if (!playerId) {
+    res.status(400).send("Missing playerId query parameter");
+    return;
+  }
+
+  const trimmedId = playerId.trim();
+  const targetUrl = SOULFRAME_API_BASE + encodeURIComponent(trimmedId);
+
   try {
-    // On accepte uniquement GET
-    if (req.method !== "GET") {
-      res.setHeader("Allow", "GET");
-      res.status(405).json({ error: "Method Not Allowed" });
-      return;
-    }
-
-    const playerId =
-      (req.query && typeof req.query.playerId === "string"
-        ? req.query.playerId
-        : "") || "";
-
-    if (!playerId) {
-      res.status(400).json({ error: "Missing playerId query parameter" });
-      return;
-    }
-
-    const trimmedId = playerId.trim();
-    const targetUrl = SOULFRAME_API_BASE + encodeURIComponent(trimmedId);
-
     const upstream = await fetch(targetUrl, {
       method: "GET",
       headers: {
@@ -33,33 +33,21 @@ export default async function handler(req, res) {
     });
 
     const bodyText = await upstream.text();
-    const trimmed = bodyText.trim();
+    const preview = bodyText.trim().slice(0, 400);
 
-    // Cas typique "no account"
-    if (upstream.status === 404 || /^no account/i.test(trimmed)) {
-      res.status(404).send(trimmed);
-      return;
-    }
+    console.log(
+      "[SF Proxy] upstream status:",
+      upstream.status,
+      "| preview:",
+      preview
+    );
 
-    // Autres erreurs côté Soulframe
-    if (!upstream.ok) {
-      res
-        .status(502)
-        .send(
-          `Upstream Soulframe API error (HTTP ${
-            upstream.status
-          }): ${trimmed.slice(0, 200)}`
-        );
-      return;
-    }
-
-    // OK → on renvoie le JSON brut
-    res.setHeader("Content-Type", "application/json");
-    res.status(200).send(bodyText);
+    // Forward EXACTEMENT le status + le body de Soulframe
+    res.status(upstream.status).send(bodyText || "");
   } catch (err) {
-    console.error("Unexpected error in /api/soulframe-profile:", err);
+    console.error("[SF Proxy] unexpected error:", err);
     res
-      .status(502)
-      .json({ error: "Internal proxy error while contacting Soulframe API" });
+      .status(500)
+      .send("Proxy error while contacting Soulframe API: " + (err?.message || String(err)));
   }
 }
