@@ -4486,8 +4486,11 @@ const refreshData = async (mode = "manual") => {
 
                                           {/* Badge Founder en haut à droite */}
                                           {founderInfo && (
-                                            <div className="absolute -top-3 right-4 flex items-center gap-2 bg-black/70 border border-amber-500/80 rounded-full px-2.5 py-1 shadow-[0_0_18px_rgba(0,0,0,0.9)]">
-                                              <div className="w-7 h-7 rounded-full overflow-hidden border border-amber-400/80 bg-black/60 flex items-center justify-center">
+                                            <div
+                                             className="absolute top-3 right-4 flex items-center gap-2 bg-black/70 border border-amber-500/80 rounded-full px-2.5 py-1 shadow-[0_0_18px_rgba(0,0,0,0.9)]"
+                                             style={{ zIndex: 5 }}
+                                            >
+                                               <div className="w-7 h-7 rounded-full overflow-hidden border border-amber-400/80 bg-black/60 flex items-center justify-center">
                                                 <img
                                                   src={founderInfo.image}
                                                   alt={founderInfo.title}
