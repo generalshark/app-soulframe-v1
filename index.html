@@ -1149,8 +1149,8 @@ Date: 2025-11-23 | Version: 0.2.0
     // =============================================================================
     // CONSTANTES ET CONFIGURATIONS
     // =============================================================================
-    const BACKEND_SF_PROFILE = "/api/soulframe-profile";
-    const LORE_URL = "https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/docs/lore.json";
+    const PROXY = "https://corsproxy.io/?";
+    const SOULFRAME_API ="https://api.soulframe.com/cdn/getProfileViewingData.php?playerId=";
     
     // Configuration des onglets
     const ongletsConfig = [
@@ -2997,40 +2997,38 @@ async function fetchViaId(idOverride) {
     setIsUpdating(true);
     setError("");
 
-    //  backend Vercel
-    const url = `${BACKEND_SF_PROFILE}?playerId=${encodeURIComponent(id)}`;
+    // Appel via le proxy CORS front
+    const url = `${PROXY}${encodeURIComponent(SOULFRAME_API + id)}`;
     const res = await fetch(url);
-
-    // Cas HTTP non OK
-    if (!res.ok) {
-      if (res.status === 404) {
-        throw new Error(
-          "No valid Soulframe Account ID found. Please check the ID and try again."
-        );
-      }
-      throw new Error(`HTTP ${res.status}`);
-    }
 
     // On lit d'abord en texte, puis on essaie de parser
     const raw = await res.text();
+
+    // Si le proxy renvoie un vrai code d'erreur HTTP
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${raw.slice(0, 120)}`);
+    }
+
     let json;
     try {
       json = JSON.parse(raw);
     } catch (parseErr) {
       const trimmed = raw.trim();
-      // Cas typique: texte simple
+
+      // Cas typique: "No account ..." renvoyé en texte
       if (/^no account/i.test(trimmed)) {
         throw new Error(
           "No valid Soulframe Account ID found. Please check the ID and try again."
         );
       }
+
       console.error("Soulframe API – unexpected response:", trimmed);
       throw new Error(
         "Unexpected response from Soulframe API. Please try again later."
       );
     }
 
-    // Cas où l’API renvoie un champ error dans le JSON
+    // Cas où l’API renvoie un champ error dans le JSON (par sécurité)
     if (json?.error) {
       const apiMessage = /no account/i.test(json.error)
         ? "No valid Soulframe Account ID found. Please check the ID and try again."
@@ -3038,13 +3036,13 @@ async function fetchViaId(idOverride) {
       throw new Error(apiMessage);
     }
 
-    // Envoi des infos de compte au backend pour logging
+    // Enregistre le compte côté backend KV (ta fonction existante)
     registerAccountFromPayload(json);
 
     setUpdateMessage("✅ Données prêtes");
 
+    // Animation de transition (inchangée)
     setIsTransitioning(true);
-    const T_START = 400;
     const T_SWITCH = 1200;
     const T_END = 2000;
 
@@ -3074,163 +3072,162 @@ async function fetchViaId(idOverride) {
 
 
 
-      // Rafraîchir les données (bouton Update + auto-update)
-      const refreshData = async (mode = "manual") => {
-        const currentAccountId = localStorage.getItem("soulframe_accountId");
 
-        if (!currentAccountId) {
-          if (mode === "auto") return;
-          setError("Veuillez entrer un AccountId valide.");
-          return;
-        }
+// Rafraîchir les données (bouton Update + auto-update)
+const refreshData = async (mode = "manual") => {
 
-        try {
-          setIsUpdating(true);
-          if (mode !== "auto") setError("");
+  if (mode === "auto" && view !== "PS") {
+    return;
+  }
 
-         const url = `${BACKEND_SF_PROFILE}?playerId=${encodeURIComponent(
-            currentAccountId
-        )}`;
-         const res = await fetch(url);
+  const currentAccountId = localStorage.getItem("soulframe_accountId");
 
-       // Cas HTTP non OK
-       if (!res.ok) {
-         if (res.status === 404) {
-           throw new Error(
-             "No valid Soulframe Account ID found. Please check the ID and try again."
-           );
-         }
-         throw new Error(`HTTP ${res.status}`);
-       }
+  if (!currentAccountId) {
+    if (mode === "auto") return;
+    setError("Veuillez entrer un AccountId valide.");
+    return;
+  }
 
-       // On lit d'abord en texte, puis on essaie de parser
-       const raw = await res.text();
-       let json;
-       try {
-         json = JSON.parse(raw);
-       } catch (parseErr) {
-         const trimmed = raw.trim();
+  try {
+    setIsUpdating(true);
+    if (mode !== "auto") setError("");
 
-         // Cas typique : "No account ..." renvoyé en texte
-         if (/^no account/i.test(trimmed)) {
-           throw new Error(
-             "No valid Soulframe Account ID found. Please check the ID and try again."
-           );
-         }
+    // Appel via le proxy CORS front
+    const url = `${PROXY}${encodeURIComponent(
+      SOULFRAME_API + currentAccountId
+    )}`;
+    const res = await fetch(url);
 
-         console.error("Soulframe API – unexpected response (refresh):", trimmed);
-         throw new Error(
-           "Unexpected response from Soulframe API while refreshing data. Please try again later."
-         );
-       }
+    const raw = await res.text();
 
-         // Cas où l’API renvoie un champ error dans le JSON
-         if (json?.error) {
-            const apiMsg = json.error;
-          if (/no account/i.test(apiMsg)) {
-             throw new Error(
-               "No valid Soulframe Account ID found. Please check the ID and try again."
-            );
-          }
-          throw new Error(apiMsg);
-       }
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${raw.slice(0, 120)}`);
+    }
 
+    let json;
+    try {
+      json = JSON.parse(raw);
+    } catch (parseErr) {
+      const trimmed = raw.trim();
 
-          // Pas d'appel registerAccountFromPayload ici :
-          // on veut limiter les requêtes KV, l'enregistrement du compte
-          // se fait seulement lors du premier chargement (fetchViaId).
+      // Cas typique : "No account ..." renvoyé en texte
+      if (/^no account/i.test(trimmed)) {
+        throw new Error(
+          "No valid Soulframe Account ID found. Please check the ID and try again."
+        );
+      }
 
-          const oldPayloadForDiffs = payload;
+      console.error(
+        "Soulframe API – unexpected response (refresh):",
+        trimmed
+      );
+      throw new Error(
+        "Unexpected response from Soulframe API while refreshing data. Please try again later."
+      );
+    }
 
-          if (referenceData) {
-            const currentState = {
-              weaponDiffs,
-              enemyDiffs,
-              statDiffs,
-              weaponBonuses,
-              enemyBonuses,
-              statBonuses,
-            };
+    if (json?.error) {
+      const apiMsg = json.error;
+      if (/no account/i.test(apiMsg)) {
+        throw new Error(
+          "No valid Soulframe Account ID found. Please check the ID and try again."
+        );
+      }
+      throw new Error(apiMsg);
+    }
 
-            const diffs = computeDiffs(
-              referenceData,
-              json,
-              currentState,
-              currentState
-            );
+    const oldPayloadForDiffs = payload;
 
-            setWeaponDiffs(diffs.weaponDiffs);
-            setEnemyDiffs(diffs.enemyDiffs);
-            setStatDiffs(diffs.statDiffs);
-            setWeaponBonuses(diffs.weaponBonuses);
-            setEnemyBonuses(diffs.enemyBonuses);
-            setStatBonuses(diffs.statBonuses);
-
-            if (diffs.hasChanges) {
-              setHasChanges(true);
-              if (mode !== "auto") {
-                setUpdateMessage("✅ Progrès depuis la référence");
-              }
-            } else {
-              setHasChanges(false);
-              if (mode !== "auto") {
-                setUpdateMessage("✅ Données à jour (même que référence)");
-              }
-            }
-          } else {
-            setReferenceData(json);
-            try {
-              localStorage.setItem("soulframe_reference", JSON.stringify(json));
-            } catch (e) {}
-
-            setWeaponDiffs({});
-            setEnemyDiffs({});
-            setStatDiffs({});
-            setWeaponBonuses({});
-            setEnemyBonuses({});
-            setStatBonuses({});
-            setHasChanges(false);
-
-            if (mode !== "auto") {
-              setUpdateMessage("✅ Référence initialisée");
-            }
-          }
-
-          // Mise à jour du module de statistiques
-          if (statsModule) {
-            if (typeof statsModule.handleManualUpdate === "function") {
-              statsModule.handleManualUpdate(json, oldPayloadForDiffs || null);
-            } else if (typeof statsModule.trackActivity === "function") {
-              statsModule.trackActivity(json, oldPayloadForDiffs || null);
-            }
-
-            if (typeof statsModule.saveToStorage === "function") {
-              statsModule.saveToStorage();
-            }
-
-            if (window.updateStatsUI) {
-              window.updateStatsUI();
-            }
-          }
-
-          setPayload(json);
-          setView("PS");
-          setActiveTab("player");
-          if (backgroundMusic && !musicStarted) startBackgroundMusic();
-        } catch (e) {
-          const msg = e?.message || String(e);
-          setError(msg);
-
-          // Pas de toast "Échec" si c'est juste un mauvais Account ID
-          if (mode !== "auto" && !/No valid Soulframe Account ID found/i.test(msg)) {
-              setUpdateMessage("❌ Échec de la mise à jour");
-              setTimeout(() => setUpdateMessage(""), 3000);
-          }
-        } finally {
-          setIsUpdating(false);
-        }
-
+    // Gestion des diffs & référence (inchangé)
+    if (referenceData) {
+      const currentState = {
+        weaponDiffs,
+        enemyDiffs,
+        statDiffs,
+        weaponBonuses,
+        enemyBonuses,
+        statBonuses,
       };
+
+      const diffs = computeDiffs(
+        referenceData,
+        json,
+        currentState,
+        currentState
+      );
+
+      setWeaponDiffs(diffs.weaponDiffs);
+      setEnemyDiffs(diffs.enemyDiffs);
+      setStatDiffs(diffs.statDiffs);
+      setWeaponBonuses(diffs.weaponBonuses);
+      setEnemyBonuses(diffs.enemyBonuses);
+      setStatBonuses(diffs.statBonuses);
+
+      if (diffs.hasChanges) {
+        setHasChanges(true);
+        if (mode !== "auto") {
+          setUpdateMessage("✅ Progrès depuis la référence");
+        }
+      } else {
+        setHasChanges(false);
+        if (mode !== "auto") {
+          setUpdateMessage("✅ Données à jour (même que référence)");
+        }
+      }
+    } else {
+      setReferenceData(json);
+      try {
+        localStorage.setItem("soulframe_reference", JSON.stringify(json));
+      } catch (e) {}
+
+      setWeaponDiffs({});
+      setEnemyDiffs({});
+      setStatDiffs({});
+      setWeaponBonuses({});
+      setEnemyBonuses({});
+      setStatBonuses({});
+      setHasChanges(false);
+
+      if (mode !== "auto") {
+        setUpdateMessage("✅ Référence initialisée");
+      }
+    }
+
+    // Mise à jour du module de statistiques
+    if (statsModule) {
+      if (typeof statsModule.handleManualUpdate === "function") {
+        statsModule.handleManualUpdate(json, oldPayloadForDiffs || null);
+      } else if (typeof statsModule.trackActivity === "function") {
+        statsModule.trackActivity(json, oldPayloadForDiffs || null);
+      }
+
+      if (typeof statsModule.saveToStorage === "function") {
+        statsModule.saveToStorage();
+      }
+
+      if (window.updateStatsUI) {
+        window.updateStatsUI();
+      }
+    }
+
+    setPayload(json);
+
+    // On NE change plus la vue ici
+    if (view === "PS" && backgroundMusic && !musicStarted) {
+      startBackgroundMusic();
+    }
+  } catch (e) {
+    const msg = e?.message || String(e);
+    setError(msg);
+
+    if (!/No valid Soulframe Account ID found/i.test(msg)) {
+      setUpdateMessage("❌ Échec de la mise à jour");
+      setTimeout(() => setUpdateMessage(""), 3000);
+    }
+  } finally {
+    setIsUpdating(false);
+  }
+};
 
       // =============================================================================
       // FONCTIONS UTILITAIRES
