@@ -4260,172 +4260,152 @@ const raw = await fetchSoulframeWithFallback(currentAccountId);
                       </div>
                     </div>
 
-                    {/* Lore panneau */}
-                    <div className="max-w-3xl mx-auto px-6 relative">
-                      <button
-                        onClick={() => setLanguage(language === "en" ? "fr" : "en")}
-                        className="absolute top-3 right-4 text-xs text-amber-400/70 hover:text-amber-200 transition-colors bg-amber-900/20 border border-amber-800/40 px-2 py-1 rounded-md backdrop-blur-sm"
-                        title={language === "en" ? "Afficher en français" : "Show in English"}
-                      >
-                        {language === "en" ? "FR" : "EN"}
-                      </button>
+{/* Lore panneau */}
+<div className="max-w-3xl mx-auto px-6 relative">
+  <button
+    onClick={() => setLanguage(language === "en" ? "fr" : "en")}
+    className="absolute top-3 right-4 text-xs text-amber-400/70 hover:text-amber-200 transition-colors bg-amber-900/20 border border-amber-800/40 px-2 py-1 rounded-md backdrop-blur-sm"
+    title={language === "en" ? "Afficher en français" : "Show in English"}
+  >
+    {language === "en" ? "FR" : "EN"}
+  </button>
 
-                      <div className="bg-[#0f0f0e]/70 border border-amber-800/40 rounded-xl p-6 shadow-amber-900/10 shadow-2xl lore-panel">
-                        <p
-                          key={`${language}-${loreIdx}`}
-                          className="lore-anim text-amber-200/90 text-lg sm:text-xl leading-relaxed tracking-wide break-words"
-                        >
-                          {language === "en"
-                            ? loreLines[loreIdx] ?? "…"
-                            : loreLinesFR[loreIdx] ?? loreLines[loreIdx] ?? "…"}
-                        </p>
-                      </div>
+  <div className="bg-[#0f0f0e]/70 border border-amber-800/40 rounded-xl p-6 shadow-amber-900/10 shadow-2xl lore-panel">
+    <p
+      key={`${language}-${loreIdx}`}
+      className="lore-anim text-amber-200/90 text-lg sm:text-xl leading-relaxed tracking-wide break-words"
+    >
+      {language === "en"
+        ? loreLines[loreIdx] ?? "…"
+        : loreLinesFR[loreIdx] ?? loreLines[loreIdx] ?? "…"}
+    </p>
+  </div>
 
-                      <div className="mt-3 text-xs text-amber-400/60">
-                        <span>Credit: Avakot.org</span>
-                      </div>
-                    </div>
+  <div className="mt-3 text-xs text-amber-400/60">
+    <span>Credit: Avakot.org</span>
+  </div>
+</div>
 
-                    {/* Soulframe CORS Helper – Extension navigateur */}
-                    <div className="mt-10 max-w-3xl mx-auto px-6 text-left">
-                      <div className="relative bg-[#0f0f0e]/85 border border-amber-800/60 rounded-xl p-6 shadow-amber-900/20 shadow-2xl">
-                        <div className="absolute inset-0 rounded-xl pointer-events-none border border-amber-400/30" />
+{/* Soulframe Link – Extension navigateur */}
+<div className="mt-10 max-w-3xl mx-auto px-6 text-left">
+  <div className="relative bg-[#0f0f0e]/85 border border-amber-800/60 rounded-xl p-6 shadow-amber-900/20 shadow-2xl">
+    <div className="absolute inset-0 rounded-xl pointer-events-none border border-amber-400/30" />
 
-                        <div className="relative z-10 space-y-3 text-sm text-amber-100/90">
-                          <h3 className="text-amber-200 font-semibold text-base flex items-center gap-2">
-                            <span>🔧 Soulframe CORS Helper (Chrome / Edge)</span>
-                          </h3>
+    <div className="relative z-10 space-y-3 text-sm text-amber-100/90">
+      <h3 className="text-amber-200 font-semibold text-base flex items-center gap-2">
+        <span>🔗 Soulframe Link (Chrome / Edge)</span>
+      </h3>
 
-                          {language === "fr" ? (
-                            <>
-                              <p className="text-amber-100/90">
-                                <span className="font-semibold">
-                                  Option recommandée :
-                                </span>{" "}
-                                une petite extension navigateur qui permet à Soulframe
-                                Tracker de parler directement à l&apos;API Soulframe,
-                                sans proxy CORS.
-                              </p>
+      {language === "fr" ? (
+        <>
+          <p className="text-amber-100/90">
+            <span className="font-semibold">Option recommandée :</span>{" "}
+            une petite extension navigateur qui permet à Soulframe Tracker de
+            parler directement à l&apos;API Soulframe, sans proxy CORS.
+          </p>
 
-                              <ol className="list-decimal list-inside space-y-1">
-                                <li>Télécharge le fichier ZIP ci-dessous.</li>
-                                <li>Dézippe-le quelque part sur ton PC.</li>
-                                <li>
-                                  Ouvre{" "}
-                                  <span className="font-mono text-amber-200">
-                                    chrome://extensions
-                                  </span>{" "}
-                                  (ou{" "}
-                                  <span className="font-mono text-amber-200">
-                                    edge://extensions
-                                  </span>
-                                  ).
-                                </li>
-                                <li>Active le mode développeur en haut à droite.</li>
-                                <li>
-                                  Clique sur{" "}
-                                  <span className="font-semibold">
-                                    « Charger l&apos;extension non empaquetée »
-                                  </span>{" "}
-                                  / <span className="font-semibold">Load unpacked</span>.
-                                </li>
-                                <li>
-                                  Sélectionne le dossier{" "}
-                                  <span className="font-mono text-amber-200">
-                                    Soulframe Link
-                                  </span>{" "}
-                                  (celui que tu as dézippé).
-                                </li>
-                                <li>
-                                  (Optionnel mais recommandé en local) Dans les
-                                  détails de l&apos;extension, active{" "}
-                                  <span className="font-semibold">
-                                    « Autoriser l&apos;accès aux URL de fichiers »
-                                  </span>
-                                  .
-                                </li>
-                              </ol>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Télécharge le fichier ZIP ci-dessous.</li>
+            <li>Dézippe-le quelque part sur ton PC.</li>
+            <li>
+              Ouvre{" "}
+              <span className="font-mono text-amber-200">
+                chrome://extensions
+              </span>{" "}
+              (ou{" "}
+              <span className="font-mono text-amber-200">
+                edge://extensions
+              </span>
+              ).
+            </li>
+            <li>Active le mode développeur en haut à droite.</li>
+            <li>
+              Clique sur{" "}
+              <span className="font-semibold">
+                « Charger l&apos;extension non empaquetée »
+              </span>{" "}
+              / <span className="font-semibold">Load unpacked</span>.
+            </li>
+            <li>
+              Sélectionne le dossier{" "}
+              <span className="font-mono text-amber-200">Soulframe Link</span>{" "}
+              (celui que tu as dézippé).
+            </li>
+          </ol>
 
-                              <p className="text-xs text-amber-300/90 mt-2">
-                                Une fois installée, l&apos;extension permet des mises à
-                                jour plus stables et évite la plupart des erreurs réseau,
-                                surtout en période de grosse affluence.
-                              </p>
-                            </>
-                          ) : (
-                            <>
-                              <p className="text-amber-100/90">
-                                <span className="font-semibold">
-                                  Recommended option:
-                                </span>{" "}
-                                a tiny browser extension that lets Soulframe Tracker talk
-                                directly to the Soulframe API, without any CORS proxy.
-                              </p>
+          <p className="text-xs text-amber-300/90 mt-2">
+            Une fois installée, l&apos;extension permet des mises à jour plus
+            stables et évite la plupart des erreurs réseau, surtout en période
+            de grosse affluence.
+          </p>
+        </>
+      ) : (
+        <>
+          <p className="text-amber-100/90">
+            <span className="font-semibold">Recommended option:</span>{" "}
+            a tiny browser extension that lets Soulframe Tracker talk directly
+            to the Soulframe API, without any CORS proxy.
+          </p>
 
-                              <ol className="list-decimal list-inside space-y-1">
-                                <li>Download the ZIP file below.</li>
-                                <li>Unzip it somewhere on your PC.</li>
-                                <li>
-                                  Open{" "}
-                                  <span className="font-mono text-amber-200">
-                                    chrome://extensions
-                                  </span>{" "}
-                                  (or{" "}
-                                  <span className="font-mono text-amber-200">
-                                    edge://extensions
-                                  </span>
-                                  ).
-                                </li>
-                                <li>Enable Developer mode (top-right).</li>
-                                <li>
-                                  Click{" "}
-                                  <span className="font-semibold">“Load unpacked”</span>.
-                                </li>
-                                <li>
-                                  Select the{" "}
-                                  <span className="font-mono text-amber-200">
-                                    Soulframe Link
-                                  </span>{" "}
-                                  folder you unzipped.
-                                </li>
-                                <li>
-                                  (Optional but recommended for local files) In the
-                                  extension details, enable{" "}
-                                  <span className="font-semibold">
-                                    “Allow access to file URLs”
-                                  </span>
-                                  .
-                                </li>
-                              </ol>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Download the ZIP file below.</li>
+            <li>Unzip it somewhere on your PC.</li>
+            <li>
+              Open{" "}
+              <span className="font-mono text-amber-200">
+                chrome://extensions
+              </span>{" "}
+              (or{" "}
+              <span className="font-mono text-amber-200">
+                edge://extensions
+              </span>
+              ).
+            </li>
+            <li>Enable Developer mode (top-right).</li>
+            <li>
+              Click{" "}
+              <span className="font-semibold">“Load unpacked”</span>.
+            </li>
+            <li>
+              Select the{" "}
+              <span className="font-mono text-amber-200">Soulframe Link</span>{" "}
+              folder you unzipped.
+            </li>
+          </ol>
 
-                              <p className="text-xs text-amber-300/90 mt-2">
-                                Once installed, the extension gives you more stable
-                                updates and avoids most network errors, especially
-                                during peak times.
-                              </p>
-                            </>
-                          )}
+          <p className="text-xs text-amber-300/90 mt-2">
+            Once installed, the extension gives you more stable updates and
+            avoids most network errors, especially during peak times.
+          </p>
+        </>
+      )}
 
-                          <div className="mt-4 flex justify-center">
-                            <a
-                              href="https://github.com/generalshark/app-soulframe-v1/raw/refs/heads/main/public/Soulframe-Link.zip"
-                              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-amber-500/70 bg-amber-900/40 text-amber-50 text-sm font-semibold hover:bg-amber-800/60 hover:shadow-[0_0_18px_rgba(251,191,36,0.7)] transition-all"
-                              download
-                            >
-                              <span>📥</span>
-                              <span>
-                                {language === "fr"
-                                  ? "Télécharger l’extension"
-                                  : "Download the extension"}
-                              </span>
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+      <div className="mt-4 flex flex-col items-center gap-2">
+        <a
+          href="https://github.com/generalshark/app-soulframe-v1/raw/refs/heads/main/public/Soulframe-Link.zip"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-amber-500/70 bg-amber-900/40 text-amber-50 text-sm font-semibold hover:bg-amber-800/60 hover:shadow-[0_0_18px_rgba(251,191,36,0.7)] transition-all"
+          download
+        >
+          <span>📥</span>
+          <span>
+            {language === "fr"
+              ? "Télécharger l’extension"
+              : "Download the extension"}
+          </span>
+        </a>
+
+        {/* Lien visible mais non cliquable */}
+        <p className="text-[10px] sm:text-xs text-amber-400/70 break-all select-text">
+          https://github.com/generalshark/app-soulframe-v1/blob/main/public/Soulframe-Link.zip
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+)}
+</div>
+
 
               {/* PAGE STATS */}
               <div
