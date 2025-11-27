@@ -1149,8 +1149,13 @@ Date: 2025-11-23 | Version: 0.2.0
     // =============================================================================
     // CONSTANTES ET CONFIGURATIONS
     // =============================================================================
-    const PROXY = "https://api.allorigins.win/raw?url=";
-    const SOULFRAME_API ="https://api.soulframe.com/cdn/getProfileViewingData.php?playerId=";
+    const CORS_PROXIES = [
+     (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+     (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+     (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+    ];
+    const SOULFRAME_API =
+    "https://api.soulframe.com/cdn/getProfileViewingData.php?playerId=";
     const LORE_URL = "https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/docs/lore.json";
    
     
@@ -3077,7 +3082,67 @@ Date: 2025-11-23 | Version: 0.2.0
           console.warn("Error while trying to register account:", e);
         }
       }
+// Essaie les proxys CORS un par un pour appeler l'API Soulframe
+async function proxyFetchSoulframe(targetUrl) {
+  let lastError = null;
 
+  for (const build of CORS_PROXIES) {
+    const proxiedUrl = build(targetUrl);
+
+    try {
+      const res = await fetch(proxiedUrl);
+      const raw = await res.text();
+
+      if (!res.ok) {
+        console.warn("[CORS PROXY] HTTP error", res.status, proxiedUrl, raw.slice(0, 120));
+        lastError = new Error(`Proxy HTTP ${res.status}: ${raw.slice(0, 120)}`);
+        continue;
+      }
+
+      // Succès : on renvoie simplement le body texte
+      return raw;
+    } catch (err) {
+      console.warn("[CORS PROXY] Network error", proxiedUrl, err);
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error("All CORS proxies failed for Soulframe API.");
+}
+
+// Appel complet : essaie d'abord en direct (extension navigateur CORS active),
+// puis, si ça échoue, tombe automatiquement sur les proxys CORS.
+async function fetchSoulframeWithFallback(playerId) {
+  const targetUrl = SOULFRAME_API + playerId;
+  let lastError = null;
+
+  // 1) Tentative DIRECTE (fonctionne si l'extension navigateur est installée)
+  try {
+    const res = await fetch(targetUrl);
+    const raw = await res.text();
+
+    if (!res.ok) {
+      console.warn("[Soulframe API] Direct HTTP error", res.status, raw.slice(0, 120));
+      lastError = new Error(`Direct HTTP ${res.status}: ${raw.slice(0, 120)}`);
+    } else {
+      // Succès direct → on retourne la réponse
+      return raw;
+    }
+  } catch (err) {
+    console.warn("[Soulframe API] Direct fetch failed, fallback to proxies", err);
+    lastError = err;
+  }
+
+  // 2) Fallback : proxys CORS
+  try {
+    return await proxyFetchSoulframe(targetUrl);
+  } catch (err) {
+    console.error("[Soulframe API] Proxy fetch also failed", err);
+    throw lastError || err;
+  }
+}
+
+      
 
 // Récupérer les données via l'API (bouton principal)
 async function fetchViaId(idOverride) {
@@ -3088,17 +3153,9 @@ async function fetchViaId(idOverride) {
     setIsUpdating(true);
     setError("");
 
-    // Appel via le proxy CORS front
-    const url = `${PROXY}${encodeURIComponent(SOULFRAME_API + id)}`;
-    const res = await fetch(url);
+// Nouveau code : direct + fallback proxys
+const raw = await fetchSoulframeWithFallback(id);
 
-    // On lit d'abord en texte, puis on essaie de parser
-    const raw = await res.text();
-
-    // Si le proxy renvoie un vrai code d'erreur HTTP
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}: ${raw.slice(0, 120)}`);
-    }
 
     let json;
     try {
@@ -3183,17 +3240,9 @@ const refreshData = async (mode = "manual") => {
     setIsUpdating(true);
     if (mode !== "auto") setError("");
 
-    // Appel via le proxy CORS front
-    const url = `${PROXY}${encodeURIComponent(
-      SOULFRAME_API + currentAccountId
-    )}`;
-    const res = await fetch(url);
+// Nouveau code : direct + fallback proxys
+const raw = await fetchSoulframeWithFallback(currentAccountId);
 
-    const raw = await res.text();
-
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}: ${raw.slice(0, 120)}`);
-    }
 
     let json;
     try {
