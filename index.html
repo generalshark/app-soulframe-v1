@@ -1149,6 +1149,11 @@ Date: 2025-11-23 | Version: 0.2.0
     // =============================================================================
     // CONSTANTES ET CONFIGURATIONS
     // =============================================================================
+        const CORS_PROXIES = [
+     (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+     (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+     (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+    ];
     const SOULFRAME_API =
     "https://api.soulframe.com/cdn/getProfileViewingData.php?playerId=";
     const LORE_URL = "https://raw.githubusercontent.com/generalshark/app-soulframe-v1/refs/heads/main/docs/lore.json";
