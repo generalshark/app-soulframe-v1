@@ -3422,56 +3422,38 @@ Date: 2025-11-23 | Version: 0.2.0
         }
       }
 
-// Essaie les proxys CORS un par un pour appeler l'API Soulframe
-async function proxyFetchSoulframe(targetUrl) {
-  let lastError = null;
+// ======= NOUVEAU : appel unique vers le backend Vercel =======
+const BACKEND_SF_PROFILE = "/api/soulframe-profile";
 
-  for (const build of CORS_PROXIES) {
-    const proxiedUrl = build(targetUrl);
+async function fetchSoulframeWithFallback(playerId) {
+  const id = (playerId || "").trim();
 
-    try {
-      const res = await fetch(proxiedUrl);
-      const raw = await res.text();
-
-      if (!res.ok) {
-        console.warn("[CORS PROXY] HTTP error", res.status, proxiedUrl, raw.slice(0, 120));
-        lastError = new Error(`Proxy HTTP ${res.status}: ${raw.slice(0, 120)}`);
-        continue;
-      }
-
-      // Succès : on renvoie simplement le body texte
-      return raw;
-    } catch (err) {
-      console.warn("[CORS PROXY] Network error", proxiedUrl, err);
-      lastError = err;
-    }
+  if (!id) {
+    throw new Error("Veuillez entrer un AccountId valide.");
   }
 
-  throw lastError || new Error("All CORS proxies failed for Soulframe API.");
-}
+  const url = `${BACKEND_SF_PROFILE}?playerId=${encodeURIComponent(id)}`;
 
-// Appel complet : essaie d'abord en direct (extension navigateur CORS active),
-// puis, si ça échoue, tombe automatiquement sur les proxys CORS.
-async function fetchSoulframeWithFallback(playerId) {
-  const targetUrl = SOULFRAME_API + playerId;
-  let lastError = null;
-
-  // 1) Tentative DIRECTE (fonctionne si l'extension navigateur est installée)
   try {
-    const res = await fetch(targetUrl);
+    const res = await fetch(url);
     const raw = await res.text();
 
     if (!res.ok) {
-      console.warn("[Soulframe API] Direct HTTP error", res.status, raw.slice(0, 120));
-      lastError = new Error(`Direct HTTP ${res.status}: ${raw.slice(0, 120)}`);
-    } else {
-      // Succès direct → on retourne la réponse
-      return raw;
+      console.warn(
+        "[BACKEND_SF_PROFILE] HTTP error",
+        res.status,
+        raw.slice(0, 200)
+      );
+      throw new Error(`Backend HTTP ${res.status}: ${raw.slice(0, 200)}`);
     }
+
+    return raw; // texte brut JSON venant du backend (qui lui parle à Soulframe via cors.lol)
   } catch (err) {
-    console.warn("[Soulframe API] Direct fetch failed, fallback to proxies", err);
-    lastError = err;
+    console.error("[BACKEND_SF_PROFILE] Network error", err);
+    throw err;
   }
+}
+
 
   // 2) Fallback : proxys CORS
   try {
