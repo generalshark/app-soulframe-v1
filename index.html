@@ -3456,17 +3456,6 @@ async function fetchSoulframeWithFallback(playerId) {
 }
 
 
-  // 2) Fallback : proxys CORS
-  try {
-    return await proxyFetchSoulframe(targetUrl);
-  } catch (err) {
-    console.error("[Soulframe API] Proxy fetch also failed", err);
-    throw lastError || err;
-  }
-}
-
-
-
 // Récupérer les données via l'API (bouton principal)
 async function fetchViaId(idOverride) {
   const id = idOverride || accountId;
