@@ -3447,7 +3447,8 @@ async function fetchSoulframeWithFallback(playerId) {
       throw new Error(`Backend HTTP ${res.status}: ${raw.slice(0, 200)}`);
     }
 
-    return raw; // texte brut JSON venant du backend (qui lui parle à Soulframe via cors.lol)
+    // Succès : on renvoie le texte brut (JSON) venant du backend
+    return raw;
   } catch (err) {
     console.error("[BACKEND_SF_PROFILE] Network error", err);
     throw err;
