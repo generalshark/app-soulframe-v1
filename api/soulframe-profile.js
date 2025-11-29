@@ -1,4 +1,14 @@
+// api/soulframe-profile.js
 
+export default async function handler(req, res) {
+  // On accepte seulement GET
+  if (req.method !== "GET") {
+    res.setHeader("Allow", "GET");
+    res.status(405).send("Method Not Allowed");
+    return;
+  }
+
+  // Récupération du playerId depuis la query
   const playerId =
     (req.query && typeof req.query.playerId === "string"
       ? req.query.playerId
@@ -24,7 +34,7 @@
     return;
   }
 
-  // On passe par le endpoint PRO
+  // On passe par le endpoint PRO cors.lol
   const corsUrl = `https://pro.cors.lol/?url=${encodeURIComponent(
     targetUrl
   )}&token=${token}`;
