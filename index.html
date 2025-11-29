@@ -5607,26 +5607,27 @@ const raw = await fetchSoulframeWithFallback(currentAccountId);
                                           </span>
                                         </div>
 
-                                        {/* Réputation quotidienne restante — n’apparaîtra que quand on aura le champ dans playerInfo */}
-                                        {playerInfo?.dailyAffiliationRemaining != null && (
+                                        {/* Réputation quotidienne restante (DailyAffiliation global) */}
+                                        {playerInfo?.dailyAffiliation != null && (
                                           <div className="mb-4 text-center text-[11px] sm:text-xs text-amber-300">
                                             {uiLang === "fr" ? (
                                               <>
                                                 Réputation quotidienne restante :{" "}
                                                 <span className="font-semibold text-amber-200">
-                                                  {playerInfo.dailyAffiliationRemaining.toLocaleString()}
+                                                  {playerInfo.dailyAffiliation.toLocaleString()}
                                                 </span>
                                               </>
                                             ) : (
                                               <>
                                                 Daily affiliation remaining:{" "}
                                                 <span className="font-semibold text-amber-200">
-                                                  {playerInfo.dailyAffiliationRemaining.toLocaleString()}
+                                                  {playerInfo.dailyAffiliation.toLocaleString()}
                                                 </span>
                                               </>
                                             )}
                                           </div>
                                         )}
+
 
                                         {/* 4 factions */}
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 text-xs sm:text-sm">
