@@ -3422,8 +3422,49 @@ Date: 2025-11-23 | Version: 0.2.0
         }
       }
 
-// ======= NOUVEAU : appel unique vers le backend Vercel =======
+// ======= NOUVEAU : appel direct + fallback backend Vercel =======
 const BACKEND_SF_PROFILE = "/api/soulframe-profile";
+
+// 1) Tentative directe vers l'API Soulframe
+//    → si l’extension est installée, elle intercepte ce fetch et contourne le CORS.
+//    → si elle n’est pas là, on aura une erreur de type "Failed to fetch" (CORS), et on basculera sur le backend.
+async function tryDirectSoulframeApi(playerId) {
+  const id = (playerId || "").trim();
+  if (!id) {
+    throw new Error("Veuillez entrer un AccountId valide.");
+  }
+
+  const directUrl = `${SOULFRAME_API}${encodeURIComponent(id)}`;
+
+  try {
+    const res = await fetch(directUrl);
+    const raw = await res.text();
+
+    if (!res.ok) {
+      console.warn(
+        "[DIRECT_SF_API] HTTP error",
+        res.status,
+        raw.slice(0, 200)
+      );
+      throw new Error(
+        `Direct Soulframe API HTTP ${res.status}: ${raw.slice(0, 200)}`
+      );
+    }
+
+    console.log("[DIRECT_SF_API] Success via direct call (extension OK ?)", {
+      status: res.status,
+    });
+
+    return { ok: true, raw };
+  } catch (err) {
+    // Typiquement : erreur de CORS si l’extension n’est pas installée ou ne fonctionne pas
+    console.warn(
+      "[DIRECT_SF_API] Direct call failed, will try backend proxy",
+      err
+    );
+    return { ok: false, error: err };
+  }
+}
 
 async function fetchSoulframeWithFallback(playerId) {
   const id = (playerId || "").trim();
@@ -3432,6 +3473,28 @@ async function fetchSoulframeWithFallback(playerId) {
     throw new Error("Veuillez entrer un AccountId valide.");
   }
 
+  // 1️⃣ Essai direct vers l'API Soulframe
+  const direct = await tryDirectSoulframeApi(id);
+  if (direct.ok) {
+    // L’extension a fait son boulot (ou CORS est ouvert côté Soulframe)
+    return direct.raw;
+  }
+
+  // 2️⃣ Cas spécial : version locale en file:// → pas de backend /api disponible
+  if (window.location.protocol === "file:") {
+    console.warn(
+      "[BACKEND_SF_PROFILE] No backend on file:// origin, direct call already failed."
+    );
+    // On relance l’erreur directe (probablement : extension manquante)
+    throw (
+      direct.error ||
+      new Error(
+        "Direct Soulframe API call failed (extension Soulframe Link probablement non installée)."
+      )
+    );
+  }
+
+  // 3️⃣ Fallback : backend Vercel qui lui passe par pro.cors.lol
   const url = `${BACKEND_SF_PROFILE}?playerId=${encodeURIComponent(id)}`;
 
   try {
@@ -3447,13 +3510,14 @@ async function fetchSoulframeWithFallback(playerId) {
       throw new Error(`Backend HTTP ${res.status}: ${raw.slice(0, 200)}`);
     }
 
-    // Succès : on renvoie le texte brut (JSON) venant du backend
+    // Succès backend
     return raw;
   } catch (err) {
     console.error("[BACKEND_SF_PROFILE] Network error", err);
     throw err;
   }
 }
+
 
 
 // Récupérer les données via l'API (bouton principal)
